@@ -5,7 +5,7 @@ cd build
 
 git clone git://dpdk.org/dpdk
 cd dpdk
- d
+
 ln -s ../../src/ecdc examples/ecdc
 
 meson -Dexamples=ecdc,helloworld,l2fwd,l3fwd build
