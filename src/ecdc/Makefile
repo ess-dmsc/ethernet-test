@@ -2,10 +2,10 @@
 # Copyright(c) 2010-2014 Intel Corporation
 
 # binary name
-APP = ecdc 
+APP = ecdc
 
 # all source are stored in SRCS-y
-SRCS-y := basicfwd.c
+SRCS-y := main.c
 
 # Build using pkg-config variables if possible
 ifneq ($(shell pkg-config --exists libdpdk && echo 0),0)

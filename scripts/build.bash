@@ -1,11 +1,6 @@
 #/bin/bash
 
-cd build
+cd src/ecdc 
 
-cd dpdk
-
-cp -r ../../src/ecdc examples/ecdc
-
-meson --reconfigure build
-cd build
-ninja
+make clean
+make
