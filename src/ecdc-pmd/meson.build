@@ -13,7 +13,6 @@ sources = files(
         'config.c',
         'csumonly.c',
         'flowgen.c',
-        'icmpecho.c',
         'ieee1588fwd.c',
         'macfwd.c',
         'macswap.c',

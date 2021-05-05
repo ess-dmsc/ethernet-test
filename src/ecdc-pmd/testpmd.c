@@ -175,7 +175,6 @@ struct fwd_engine * fwd_engines[] = {
 	&flow_gen_engine,
 	&rx_only_engine,
 	&csum_fwd_engine,
-	&icmp_echo_engine,
 	&noisy_vnf_engine,
 	&five_tuple_swap_fwd_engine,
 #ifdef RTE_LIBRTE_IEEE1588

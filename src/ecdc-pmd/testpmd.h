@@ -284,14 +284,11 @@ struct fwd_engine {
 extern uint32_t burst_tx_delay_time;
 extern uint32_t burst_tx_retry_num;
 
-extern struct fwd_engine io_fwd_engine;
 extern struct fwd_engine mac_fwd_engine;
 extern struct fwd_engine mac_swap_engine;
 extern struct fwd_engine flow_gen_engine;
 extern struct fwd_engine rx_only_engine;
-extern struct fwd_engine tx_only_engine;
 extern struct fwd_engine csum_fwd_engine;
-extern struct fwd_engine icmp_echo_engine;
 extern struct fwd_engine noisy_vnf_engine;
 extern struct fwd_engine five_tuple_swap_fwd_engine;
 #ifdef RTE_LIBRTE_IEEE1588
