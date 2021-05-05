@@ -1,23 +1,23 @@
-#/bin/bash
+#!/bin/bash
 
-#cd src/ecdc
-#make clean
-#make
-#cd ..
+function errexit() {
+  echo "error: $1"
+  exit
+}
 
-cp -r src/ecdc-pmd build/dpdk/app
-cp src/meson.build build/dpdk/app
+rm -fr dpdk/app/ecdc-pmd
+cp -r app/ecdc-pmd dpdk/app
+cp app/meson.build dpdk/app
 
-cd build/dpdk
-pwd
+cd dpdk || errexit "dpdk dir doesnt exist - make clone ?"
+
 if [[ -d build ]]; then
-  echo "reconfigure"
+  echo meson reconfigure
   meson --reconfigure build
 else
-  echo first build
+  echo meson build
   meson build
 fi
 
 cd build
 ninja
-

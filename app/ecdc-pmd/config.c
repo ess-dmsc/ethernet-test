@@ -53,7 +53,6 @@
 #include <rte_hexdump.h>
 
 #include "testpmd.h"
-#include "cmdline_mtr.h"
 
 #define ETHDEV_FWVERS_LEN 32
 

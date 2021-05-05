@@ -1,1 +1,0 @@
-sudo ./src/ecdc/build/ecdc --legacy-mem -c0xf -n4 -- -p0x1

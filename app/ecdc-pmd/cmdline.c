@@ -67,8 +67,6 @@
 #include <rte_pmd_bnxt.h>
 #endif
 #include "testpmd.h"
-#include "cmdline_mtr.h"
-#include "cmdline_tm.h"
 
 static struct cmdline *testpmd_cl;
 

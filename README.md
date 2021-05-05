@@ -1,5 +1,20 @@
 # ethernet-test
-Experiments with DPDK as 100G Ethernet tester (Linux only)
+Experiments with DPDK as 100G Ethernet tester (Ubuntu 20.04)
+
+
+## Build
+### Clone and build dpdk 
+
+    > make dpdkclone
+    > make dpdkbuild
+    > make dpdkinstall
+
+### Build ethernet test app
+
+    > make pmd
+
+### Run test app
+    > make runpmd 
 
 
 ## Kernel config
@@ -12,12 +27,6 @@ then
 
     sudo update-grub
 
-## Build
-### Clone DPDK and build test application
-
-    > ./scripts/build.bash
-
-
 ### Bind dpdk NICs
     > dpdk-devbind.py --status
     > dpdk-devbind.py --status-dev net
@@ -27,5 +36,3 @@ on mobunto:
     > sudo ../usertools/dpdk-devbind.py --bind=vfio-pci enp9s0
 
 
-### Run application
-    > sudo ./examples/dpdk-l2fwd --legacy-mem -c0xf -n4 -- -p0x1
