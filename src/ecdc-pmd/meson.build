@@ -5,18 +5,11 @@
 name = 'ecdcpmd'
 cflags += '-Wno-deprecated-declarations'
 sources = files(
-        '5tswap.c',
         'cmdline.c',
         'cmdline_flow.c',
         'cmdline_mtr.c',
         'cmdline_tm.c',
         'config.c',
-        'csumonly.c',
-        'flowgen.c',
-        'ieee1588fwd.c',
-        'macfwd.c',
-        'macswap.c',
-        'noisy_vnf.c',
         'parameters.c',
         'rxonly.c',
         'testpmd.c',

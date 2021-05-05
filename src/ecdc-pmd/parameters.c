@@ -1281,23 +1281,6 @@ launch_args_parse(int argc, char** argv)
 						 "rx-offloads must be >= 0\n");
 			}
 
-			if (!strcmp(lgopts[opt_idx].name, "vxlan-gpe-port")) {
-				n = atoi(optarg);
-				if (n >= 0)
-					vxlan_gpe_udp_port = (uint16_t)n;
-				else
-					rte_exit(EXIT_FAILURE,
-						 "vxlan-gpe-port must be >= 0\n");
-			}
-			if (!strcmp(lgopts[opt_idx].name,
-				    "geneve-parsed-port")) {
-				n = atoi(optarg);
-				if (n >= 0)
-					geneve_udp_port = (uint16_t)n;
-				else
-					rte_exit(EXIT_FAILURE,
-						 "geneve-parsed-port must be >= 0\n");
-			}
 			if (!strcmp(lgopts[opt_idx].name, "print-event"))
 				if (parse_event_printing_config(optarg, 1)) {
 					rte_exit(EXIT_FAILURE,

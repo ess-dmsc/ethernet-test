@@ -284,15 +284,7 @@ struct fwd_engine {
 extern uint32_t burst_tx_delay_time;
 extern uint32_t burst_tx_retry_num;
 
-extern struct fwd_engine mac_swap_engine;
-extern struct fwd_engine flow_gen_engine;
 extern struct fwd_engine rx_only_engine;
-extern struct fwd_engine csum_fwd_engine;
-extern struct fwd_engine noisy_vnf_engine;
-extern struct fwd_engine five_tuple_swap_fwd_engine;
-#ifdef RTE_LIBRTE_IEEE1588
-extern struct fwd_engine ieee1588_fwd_engine;
-#endif
 
 extern struct fwd_engine * fwd_engines[]; /**< NULL terminated array. */
 extern cmdline_parse_inst_t cmd_set_raw;
@@ -488,9 +480,6 @@ extern struct fwd_engine *cur_fwd_eng;
 extern uint32_t retry_enabled;
 extern struct fwd_lcore  **fwd_lcores;
 extern struct fwd_stream **fwd_streams;
-
-extern uint16_t vxlan_gpe_udp_port; /**< UDP port of tunnel VXLAN-GPE. */
-extern uint16_t geneve_udp_port; /**< UDP port of tunnel GENEVE. */
 
 extern portid_t nb_peer_eth_addrs; /**< Number of peer ethernet addresses. */
 extern struct rte_ether_addr peer_eth_addrs[RTE_MAX_ETHPORTS];

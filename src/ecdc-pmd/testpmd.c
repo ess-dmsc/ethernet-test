@@ -170,15 +170,7 @@ streamid_t nb_fwd_streams;       /**< Is equal to (nb_ports * nb_rxq). */
  * Forwarding engines.
  */
 struct fwd_engine * fwd_engines[] = {
-	&mac_swap_engine,
-	&flow_gen_engine,
 	&rx_only_engine,
-	&csum_fwd_engine,
-	&noisy_vnf_engine,
-	&five_tuple_swap_fwd_engine,
-#ifdef RTE_LIBRTE_IEEE1588
-	&ieee1588_fwd_engine,
-#endif
 	NULL,
 };
 
@@ -1817,18 +1809,8 @@ fwd_stream_stats_display(streamid_t stream_id)
 	       " TX-dropped: %-14"PRIu64,
 	       fs->rx_packets, fs->tx_packets, fs->fwd_dropped);
 
-	/* if checksum mode */
-	if (cur_fwd_eng == &csum_fwd_engine) {
-		printf("  RX- bad IP checksum: %-14"PRIu64
-		       "  Rx- bad L4 checksum: %-14"PRIu64
-		       " Rx- bad outer L4 checksum: %-14"PRIu64"\n",
-			fs->rx_bad_ip_csum, fs->rx_bad_l4_csum,
-			fs->rx_bad_outer_l4_csum);
-		printf(" RX- bad outer IP checksum: %-14"PRIu64"\n",
-			fs->rx_bad_outer_ip_csum);
-	} else {
-		printf("\n");
-	}
+
+	printf("\n");
 
 	if (record_burst_stats) {
 		pkt_burst_stats_display("RX", &fs->rx_burst_stats);
@@ -1914,16 +1896,6 @@ fwd_stats_display(void)
 		       "RX-total: %-"PRIu64"\n", stats.ipackets, stats.imissed,
 		       stats.ipackets + stats.imissed);
 
-		if (cur_fwd_eng == &csum_fwd_engine) {
-			printf("  Bad-ipcsum: %-14"PRIu64
-			       " Bad-l4csum: %-14"PRIu64
-			       "Bad-outer-l4csum: %-14"PRIu64"\n",
-			       ports_stats[pt_id].rx_bad_ip_csum,
-			       ports_stats[pt_id].rx_bad_l4_csum,
-			       ports_stats[pt_id].rx_bad_outer_l4_csum);
-			printf("  Bad-outer-ipcsum: %-14"PRIu64"\n",
-			       ports_stats[pt_id].rx_bad_outer_ip_csum);
-		}
 		if (stats.ierrors + stats.rx_nombuf > 0) {
 			printf("  RX-error: %-"PRIu64"\n", stats.ierrors);
 			printf("  RX-nombufs: %-14"PRIu64"\n", stats.rx_nombuf);
