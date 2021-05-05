@@ -6,7 +6,6 @@ name = 'ecdcpmd'
 cflags += '-Wno-deprecated-declarations'
 sources = files(
         'cmdline.c',
-        'cmdline_flow.c',
         'cmdline_mtr.c',
         'cmdline_tm.c',
         'config.c',
@@ -46,8 +45,4 @@ if dpdk_conf.has('RTE_NET_IXGBE')
 endif
 if dpdk_conf.has('RTE_NET_DPAA')
     deps += ['bus_dpaa', 'mempool_dpaa', 'net_dpaa']
-endif
-if dpdk_conf.has('RTE_LIB_BPF')
-    sources += files('bpf_cmd.c')
-    deps += 'bpf'
 endif

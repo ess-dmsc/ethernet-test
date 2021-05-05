@@ -1502,12 +1502,7 @@ port_action_handle_create(portid_t port_id, uint32_t id,
 
 		pia->age_type = ACTION_AGE_CONTEXT_TYPE_INDIRECT_ACTION;
 		age->context = &pia->age_type;
-	} else if (action->type == RTE_FLOW_ACTION_TYPE_CONNTRACK) {
-		struct rte_flow_action_conntrack *ct =
-		(struct rte_flow_action_conntrack *)(uintptr_t)(action->conf);
-
-		memcpy(ct, &conntrack_context, sizeof(*ct));
-	}
+	} 
 	/* Poisoning to make sure PMDs update it in case of error. */
 	memset(&error, 0x22, sizeof(error));
 	pia->handle = rte_flow_action_handle_create(port_id, conf, action,

@@ -545,21 +545,6 @@ struct nvgre_encap_conf {
 
 extern struct nvgre_encap_conf nvgre_encap_conf;
 
-/* L2 encap parameters. */
-struct l2_encap_conf {
-	uint32_t select_ipv4:1;
-	uint32_t select_vlan:1;
-	rte_be16_t vlan_tci;
-	uint8_t eth_src[RTE_ETHER_ADDR_LEN];
-	uint8_t eth_dst[RTE_ETHER_ADDR_LEN];
-};
-extern struct l2_encap_conf l2_encap_conf;
-
-/* L2 decap parameters. */
-struct l2_decap_conf {
-	uint32_t select_vlan:1;
-};
-extern struct l2_decap_conf l2_decap_conf;
 
 /* MPLSoGRE encap parameters. */
 struct mplsogre_encap_conf {
@@ -609,7 +594,6 @@ extern struct mplsoudp_decap_conf mplsoudp_decap_conf;
 
 extern enum rte_eth_rx_mq_mode rx_mq_mode;
 
-extern struct rte_flow_action_conntrack conntrack_context;
 
 static inline unsigned int
 lcore_num(void)
