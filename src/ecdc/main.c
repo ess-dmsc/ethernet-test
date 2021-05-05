@@ -175,7 +175,7 @@ l2fwd_main_loop(void)
 	struct lcore_queue_conf *qconf;
 	const uint64_t drain_tsc = (rte_get_tsc_hz() + US_PER_S - 1) / US_PER_S *
 			BURST_TX_DRAIN_US;
-        uint64_t loops_before_fake_pkt = 1000000;
+  uint64_t loops_before_fake_pkt = 1000000;
 
 
 	prev_tsc = 0;
@@ -236,15 +236,14 @@ l2fwd_main_loop(void)
 		for (i = 0; i < qconf->n_rx_port; i++) {
 
 			portid = qconf->rx_port_list[i];
-			nb_rx = rte_eth_rx_burst(portid, 0,
-						 pkts_burst, MAX_PKT_BURST);
+			nb_rx = rte_eth_rx_burst(portid, 0, pkts_burst, MAX_PKT_BURST);
 
 			port_statistics[portid].rx_pkt += nb_rx;
 
                         // ECDC Here we can parse headers and update stats
-                        for (j = 0; j < nb_rx; j++) {
+			for (j = 0; j < nb_rx; j++) {
 			   port_statistics[portid].rx_bytes += pkts_burst[j]->data_len;
-                        }
+      }
 
 		}
 	}
