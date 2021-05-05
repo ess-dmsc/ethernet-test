@@ -284,7 +284,6 @@ struct fwd_engine {
 extern uint32_t burst_tx_delay_time;
 extern uint32_t burst_tx_retry_num;
 
-extern struct fwd_engine mac_fwd_engine;
 extern struct fwd_engine mac_swap_engine;
 extern struct fwd_engine flow_gen_engine;
 extern struct fwd_engine rx_only_engine;

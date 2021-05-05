@@ -170,7 +170,6 @@ streamid_t nb_fwd_streams;       /**< Is equal to (nb_ports * nb_rxq). */
  * Forwarding engines.
  */
 struct fwd_engine * fwd_engines[] = {
-	&mac_fwd_engine,
 	&mac_swap_engine,
 	&flow_gen_engine,
 	&rx_only_engine,
