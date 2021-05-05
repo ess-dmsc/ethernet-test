@@ -1502,7 +1502,7 @@ port_action_handle_create(portid_t port_id, uint32_t id,
 
 		pia->age_type = ACTION_AGE_CONTEXT_TYPE_INDIRECT_ACTION;
 		age->context = &pia->age_type;
-	} 
+	}
 	/* Poisoning to make sure PMDs update it in case of error. */
 	memset(&error, 0x22, sizeof(error));
 	pia->handle = rte_flow_action_handle_create(port_id, conf, action,
@@ -1835,8 +1835,7 @@ port_meter_policy_add(portid_t port_id, uint32_t policy_id,
 	ret = rte_mtr_meter_policy_add(port_id,
 			policy_id,
 			&policy, &error);
-	if (ret)
-		print_mtr_err_msg(&error);
+	
 	return ret;
 }
 

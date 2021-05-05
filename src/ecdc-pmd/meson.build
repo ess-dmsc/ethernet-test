@@ -6,7 +6,6 @@ name = 'ecdcpmd'
 cflags += '-Wno-deprecated-declarations'
 sources = files(
         'cmdline.c',
-        'cmdline_mtr.c',
         'cmdline_tm.c',
         'config.c',
         'parameters.c',
