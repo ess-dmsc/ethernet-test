@@ -170,12 +170,10 @@ streamid_t nb_fwd_streams;       /**< Is equal to (nb_ports * nb_rxq). */
  * Forwarding engines.
  */
 struct fwd_engine * fwd_engines[] = {
-	&io_fwd_engine,
 	&mac_fwd_engine,
 	&mac_swap_engine,
 	&flow_gen_engine,
 	&rx_only_engine,
-	&tx_only_engine,
 	&csum_fwd_engine,
 	&icmp_echo_engine,
 	&noisy_vnf_engine,
@@ -2113,23 +2111,6 @@ start_pkt_forward_on_core(void *fwd_arg)
 	return 0;
 }
 
-/*
- * Run the TXONLY packet forwarding engine to send a single burst of packets.
- * Used to start communication flows in network loopback test configurations.
- */
-static int
-run_one_txonly_burst_on_core(void *fwd_arg)
-{
-	printf("mjcdebug: %s()\n", __FUNCTION__);
-	struct fwd_lcore *fwd_lc;
-	struct fwd_lcore tmp_lcore;
-
-	fwd_lc = (struct fwd_lcore *) fwd_arg;
-	tmp_lcore = *fwd_lc;
-	tmp_lcore.stopped = 1;
-	run_pkt_fwd_on_lcore(&tmp_lcore, tx_only_engine.packet_fwd);
-	return 0;
-}
 
 /*
  * Launch packet forwarding:
@@ -2168,11 +2149,9 @@ launch_packet_forwarding(lcore_function_t *pkt_fwd_on_lcore)
  * Launch packet forwarding configuration.
  */
 void
-start_packet_forwarding(int with_tx_first)
+start_packet_forwarding(int __attribute__((unused)) with_tx_first)
 {
 	printf("mjcdebug: %s()\n", __FUNCTION__);
-	port_fwd_begin_t port_fwd_begin;
-	port_fwd_end_t  port_fwd_end;
 	struct rte_port *port;
 	unsigned int i;
 	portid_t   pt_id;
@@ -2227,23 +2206,7 @@ start_packet_forwarding(int with_tx_first)
 	rxtx_config_display();
 
 	fwd_stats_reset();
-	if (with_tx_first) {
-		port_fwd_begin = tx_only_engine.port_fwd_begin;
-		if (port_fwd_begin != NULL) {
-			for (i = 0; i < cur_fwd_config.nb_fwd_ports; i++)
-				(*port_fwd_begin)(fwd_ports_ids[i]);
-		}
-		while (with_tx_first--) {
-			launch_packet_forwarding(
-					run_one_txonly_burst_on_core);
-			rte_eal_mp_wait_lcore();
-		}
-		port_fwd_end = tx_only_engine.port_fwd_end;
-		if (port_fwd_end != NULL) {
-			for (i = 0; i < cur_fwd_config.nb_fwd_ports; i++)
-				(*port_fwd_end)(fwd_ports_ids[i]);
-		}
-	}
+
 	launch_packet_forwarding(start_pkt_forward_on_core);
 }
 

@@ -727,13 +727,11 @@ launch_args_parse(int argc, char** argv)
 					rte_exit(EXIT_FAILURE,
 						 "Invalid source IP address: %s\n",
 						 optarg);
-				tx_ip_src_addr = rte_be_to_cpu_32(in.s_addr);
 
 				if (inet_aton(end, &in) == 0)
 					rte_exit(EXIT_FAILURE,
 						 "Invalid destination IP address: %s\n",
 						 optarg);
-				tx_ip_dst_addr = rte_be_to_cpu_32(in.s_addr);
 			}
 			if (!strcmp(lgopts[opt_idx].name, "tx-udp")) {
 				char *end = NULL;
@@ -746,7 +744,6 @@ launch_args_parse(int argc, char** argv)
 					rte_exit(EXIT_FAILURE,
 						 "Invalid UDP port: %s\n",
 						 optarg);
-				tx_udp_src_port = n;
 				if (*end == ',') {
 					char *dst = end + 1;
 
@@ -756,9 +753,6 @@ launch_args_parse(int argc, char** argv)
 						rte_exit(EXIT_FAILURE,
 							 "Invalid destination UDP port: %s\n",
 							 dst);
-					tx_udp_dst_port = n;
-				} else {
-					tx_udp_dst_port = n;
 				}
 
 			}

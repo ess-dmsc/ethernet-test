@@ -15,14 +15,12 @@ sources = files(
         'flowgen.c',
         'icmpecho.c',
         'ieee1588fwd.c',
-        'iofwd.c',
         'macfwd.c',
         'macswap.c',
         'noisy_vnf.c',
         'parameters.c',
         'rxonly.c',
         'testpmd.c',
-        'txonly.c',
         'util.c',
 )
 
