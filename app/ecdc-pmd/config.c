@@ -199,10 +199,8 @@ nic_stats_display(portid_t port_id)
 	printf("  RX-packets: %-10"PRIu64" RX-missed: %-10"PRIu64" RX-bytes:  "
 	       "%-"PRIu64"\n", stats.ipackets, stats.imissed, stats.ibytes);
 
-	printf("  RX-errors:  %-"PRIu64"\n", stats.ierrors);
-	printf("  RX-nombuf:  %-10"PRIu64"\n", stats.rx_nombuf);
-	// printf("  TX-packets: %-10"PRIu64" TX-errors: %-10"PRIu64" TX-bytes:  "
-	//        "%-"PRIu64"\n", stats.opackets, stats.oerrors, stats.obytes);
+	printf("  RX-errors:  %-10"PRIu64" RX-nombuf: %-10"PRIu64"\n",
+	  stats.ierrors, stats.rx_nombuf);
 
 	diff_ns = 0;
 	if (clock_gettime(CLOCK_TYPE_ID, &cur_time) == 0) {

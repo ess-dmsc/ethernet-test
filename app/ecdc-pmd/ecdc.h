@@ -2,7 +2,7 @@
 
 
 
-struct ess_header_t {
+struct ess_hdr {
   uint8_t Padding;
   uint8_t Version;
   uint32_t CookieAndType;
@@ -20,5 +20,7 @@ struct ess_header_t {
 int ecdc_eth_counters(struct rte_mbuf  * pkt, struct fwd_stream *fs);
 
 int ecdc_ip_counters(struct rte_mbuf  * pkt, struct fwd_stream *fs);
+
+int ecdc_essdaq_counters(struct rte_mbuf  * pkt, struct fwd_stream *fs);
 
 void ecdc_rx_packet(struct rte_mbuf  * pkt, struct fwd_stream *fs);

@@ -69,6 +69,21 @@ int ecdc_ip_counters(struct rte_mbuf  * pkt, struct fwd_stream *fs) {
   }
 }
 
+
+int ecdc_essdaq_counters(struct rte_mbuf  * pkt, struct fwd_stream *fs) {
+  struct ess_hdr *ess_h;
+  ess_h = rte_pktmbuf_mtod_offset(pkt, struct ess_hdr *,
+    sizeof(struct rte_ether_hdr) + sizeof(struct rte_ipv4_hdr) + sizeof(struct rte_udp_hdr));
+
+  if ((ess_h->CookieAndType & 0x00FFFFFF) != 0x535345) {
+    fs->rx_udpoth++;
+    return 0;
+  } else {
+    fs->rx_udpess++;
+    return 1;
+  }
+}
+
 void ecdc_rx_packet(struct rte_mbuf  * pkt, struct fwd_stream *fs) {
     fs->rx_packets++;
 
@@ -77,5 +92,7 @@ void ecdc_rx_packet(struct rte_mbuf  * pkt, struct fwd_stream *fs) {
 
     if (ecdc_ip_counters(pkt, fs) == 0)
       return;
+
+    ecdc_essdaq_counters(pkt, fs);
 
 }

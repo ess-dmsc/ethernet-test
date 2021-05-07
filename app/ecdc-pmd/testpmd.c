@@ -1809,6 +1809,9 @@ fwd_stream_stats_display(streamid_t stream_id)
 				fs->rx_etharp, fs->rx_ethip, fs->rx_ethoth);
 	printf("  rx_ipudp:   %-14"PRIu64" rx_ipoth:   %-14"PRIu64" \n",
 				fs->rx_ipudp, fs->rx_ipoth);
+
+	printf("  rx_udpess:  %-14"PRIu64" rx_udpoth:  %-14"PRIu64" \n",
+				fs->rx_udpess, fs->rx_udpoth);
 	///
 	printf("  rx-packets: %-14"PRIu64, fs->rx_packets);
 
@@ -3736,6 +3739,7 @@ print_stats(void)
 	for (i = 0; i < cur_fwd_config.nb_fwd_ports; i++)
 		nic_stats_display(fwd_ports_ids[i]);
 
+  fwd_stats_display();
 	fflush(stdout);
 }
 

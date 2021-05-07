@@ -63,9 +63,6 @@ pkt_burst_receive(struct fwd_stream *fs)
 	if (unlikely(nb_rx == 0))
 		return;
 
-	printf("mjcdebug: received %u packets on port %u / queue %u\n", nb_rx, fs->rx_port, fs->rx_queue);
-
-	//fs->rx_packets += nb_rx;
 	for (i = 0; i < nb_rx; i++) {
 		ecdc_rx_packet(pkts_burst[i], fs);
 		rte_pktmbuf_free(pkts_burst[i]);
