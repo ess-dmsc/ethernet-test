@@ -1793,7 +1793,6 @@ pkt_burst_stats_display(const char *rx_tx, struct pkt_burst_stats *pbs)
 static void
 fwd_stream_stats_display(streamid_t stream_id)
 {
-	printf("mjcdebug: %s()\n", __FUNCTION__);
 	struct fwd_stream *fs;
 	static const char *fwd_top_stats_border = "-------";
 
@@ -1801,20 +1800,21 @@ fwd_stream_stats_display(streamid_t stream_id)
 	if ((fs->rx_packets == 0) && (fs->tx_packets == 0) &&
 	    (fs->fwd_dropped == 0))
 		return;
-	printf("\n  %s Forward Stats for RX Port=%2d/Queue=%2d -> "
-	       "TX Port=%2d/Queue=%2d %s\n",
+	printf("\n  %s Forward Stats for RX Port=%2d/Queue=%2d %s\n",
 	       fwd_top_stats_border, fs->rx_port, fs->rx_queue,
-	       fs->tx_port, fs->tx_queue, fwd_top_stats_border);
-	printf("  RX-packets: %-14"PRIu64" TX-packets: %-14"PRIu64
-	       " TX-dropped: %-14"PRIu64,
-	       fs->rx_packets, fs->tx_packets, fs->fwd_dropped);
+	       fwd_top_stats_border);
+	/// ECDC
+  printf("  rx_etharp:  %-14"PRIu64" rx_ethip:   %-14"PRIu64
+				" rx_ethoth:  %-14"PRIu64" \n",
+				fs->rx_etharp, fs->rx_ethip, fs->rx_ethoth);
+	///
+	printf("  rx-packets: %-14"PRIu64, fs->rx_packets);
 
 
 	printf("\n");
 
 	if (record_burst_stats) {
 		pkt_burst_stats_display("RX", &fs->rx_burst_stats);
-		pkt_burst_stats_display("TX", &fs->tx_burst_stats);
 	}
 }
 
@@ -1835,6 +1835,11 @@ fwd_stats_display(void)
 	uint64_t total_rx_dropped = 0;
 	uint64_t total_tx_dropped = 0;
 	uint64_t total_rx_nombuf = 0;
+	/// ECDC
+	uint64_t total_rx_etharp = 0;
+	uint64_t total_rx_ethip = 0;
+	uint64_t total_rx_ethoth = 0;
+	///
 	struct rte_eth_stats stats;
 	uint64_t fwd_cycles = 0;
 	uint64_t total_recv = 0;
@@ -1848,6 +1853,12 @@ fwd_stats_display(void)
 
 	for (sm_id = 0; sm_id < cur_fwd_config.nb_fwd_streams; sm_id++) {
 		struct fwd_stream *fs = fwd_streams[sm_id];
+
+		/// ECDC
+		total_rx_etharp += fs->rx_etharp;
+		total_rx_ethip += fs->rx_ethip;
+		total_rx_ethoth += fs->rx_ethoth;
+		///
 
 		if (cur_fwd_config.nb_fwd_streams >
 		    cur_fwd_config.nb_fwd_ports) {
@@ -1886,6 +1897,7 @@ fwd_stats_display(void)
 		total_xmit += stats.opackets;
 		total_rx_dropped += stats.imissed;
 		total_tx_dropped += ports_stats[pt_id].tx_dropped;
+
 		total_tx_dropped += stats.oerrors;
 		total_rx_nombuf  += stats.rx_nombuf;
 
@@ -2684,7 +2696,6 @@ start_port(portid_t pid)
 void
 stop_port(portid_t pid)
 {
-	printf("mjcdebug: %s()\n", __FUNCTION__);
 	portid_t pi;
 	struct rte_port *port;
 	int need_check_link_status = 0;
@@ -2773,7 +2784,6 @@ remove_invalid_ports_in(portid_t *array, portid_t *total)
 static void
 remove_invalid_ports(void)
 {
-	printf("mjcdebug: %s()\n", __FUNCTION__);
 	remove_invalid_ports_in(ports_ids, &nb_ports);
 	remove_invalid_ports_in(fwd_ports_ids, &nb_fwd_ports);
 	nb_cfg_ports = nb_fwd_ports;
@@ -2782,7 +2792,6 @@ remove_invalid_ports(void)
 void
 close_port(portid_t pid)
 {
-	printf("mjcdebug: %s()\n", __FUNCTION__);
 	portid_t pi;
 	struct rte_port *port;
 
@@ -3027,10 +3036,7 @@ detach_devargs(char *identifier)
 	rte_devargs_reset(&da);
 }
 
-void
-pmd_test_exit(void)
-{
-	printf("mjcdebug: %s()\n", __FUNCTION__);
+void pmd_test_exit(void) {
 	portid_t pt_id;
 	unsigned int i;
 	int ret;
@@ -3062,23 +3068,20 @@ pmd_test_exit(void)
 	if (hot_plug) {
 		ret = rte_dev_event_monitor_stop();
 		if (ret) {
-			RTE_LOG(ERR, EAL,
-				"fail to stop device event monitor.");
+			RTE_LOG(ERR, EAL, "fail to stop device event monitor.");
 			return;
 		}
 
 		ret = rte_dev_event_callback_unregister(NULL,
 			dev_event_callback, NULL);
 		if (ret < 0) {
-			RTE_LOG(ERR, EAL,
-				"fail to unregister device event callback.\n");
+			RTE_LOG(ERR, EAL, "fail to unregister device event callback.\n");
 			return;
 		}
 
 		ret = rte_dev_hotplug_handle_disable();
 		if (ret) {
-			RTE_LOG(ERR, EAL,
-				"fail to disable hotplug handling.\n");
+			RTE_LOG(ERR, EAL, "fail to disable hotplug handling.\n");
 			return;
 		}
 	}
@@ -3760,7 +3763,6 @@ signal_handler(int signum)
 int
 main(int argc, char** argv)
 {
-	printf("mjcdebug: %s()\n", __FUNCTION__);
 	int diag;
 	portid_t port_id;
 	uint16_t count;

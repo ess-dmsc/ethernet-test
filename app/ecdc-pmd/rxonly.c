@@ -39,6 +39,7 @@
 #include <rte_flow.h>
 
 #include "testpmd.h"
+#include "ecdc.h"
 
 /*
  * Received a burst of packets.
@@ -64,9 +65,11 @@ pkt_burst_receive(struct fwd_stream *fs)
 
 	printf("mjcdebug: received %u packets on port %u / queue %u\n", nb_rx, fs->rx_port, fs->rx_queue);
 
-	fs->rx_packets += nb_rx;
-	for (i = 0; i < nb_rx; i++)
+	//fs->rx_packets += nb_rx;
+	for (i = 0; i < nb_rx; i++) {
+		ecdc_rx_packet(pkts_burst[i], fs);
 		rte_pktmbuf_free(pkts_burst[i]);
+	}
 
 	get_end_cycles(fs, start_tsc);
 }

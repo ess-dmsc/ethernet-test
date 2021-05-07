@@ -13612,7 +13612,7 @@ cmd_show_vf_stats_parsed(
 	printf("  RX-packets: %-10"PRIu64" RX-missed: %-10"PRIu64" RX-bytes:  "
 	       "%-"PRIu64"\n",
 	       stats.ipackets, stats.imissed, stats.ibytes);
-	printf("  RX-errors: %-"PRIu64"\n", stats.ierrors);
+	printf("  RX-errors:  %-"PRIu64"\n", stats.ierrors);
 	printf("  RX-nombuf:  %-10"PRIu64"\n",
 	       stats.rx_nombuf);
 	printf("  TX-packets: %-10"PRIu64" TX-errors: %-10"PRIu64" TX-bytes:  "

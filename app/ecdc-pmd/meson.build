@@ -11,6 +11,7 @@ sources = files(
         'rxonly.c',
         'testpmd.c',
         'util.c',
+        'ecdc.c',
 )
 
 deps += ['ethdev', 'gro', 'gso', 'cmdline', 'metrics', 'meter', 'bus_pci']

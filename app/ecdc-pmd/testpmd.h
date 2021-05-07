@@ -127,6 +127,11 @@ struct fwd_stream {
 	queueid_t  tx_queue;  /**< TX queue to send forwarded packets */
 	streamid_t peer_addr; /**< index of peer ethernet address of packets */
 
+	// ECDC stats
+	uint64_t rx_etharp;
+	uint64_t rx_ethip;
+	uint64_t rx_ethoth;
+
 	unsigned int retry_enabled;
 
 	/* "read-write" results */
