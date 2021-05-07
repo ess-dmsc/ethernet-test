@@ -1807,6 +1807,8 @@ fwd_stream_stats_display(streamid_t stream_id)
   printf("  rx_etharp:  %-14"PRIu64" rx_ethip:   %-14"PRIu64
 				" rx_ethoth:  %-14"PRIu64" \n",
 				fs->rx_etharp, fs->rx_ethip, fs->rx_ethoth);
+	printf("  rx_ipudp:   %-14"PRIu64" rx_ipoth:   %-14"PRIu64" \n",
+				fs->rx_ipudp, fs->rx_ipoth);
 	///
 	printf("  rx-packets: %-14"PRIu64, fs->rx_packets);
 

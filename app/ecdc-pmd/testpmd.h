@@ -131,6 +131,8 @@ struct fwd_stream {
 	uint64_t rx_etharp;
 	uint64_t rx_ethip;
 	uint64_t rx_ethoth;
+	uint64_t rx_ipudp;
+	uint64_t rx_ipoth;
 
 	unsigned int retry_enabled;
 

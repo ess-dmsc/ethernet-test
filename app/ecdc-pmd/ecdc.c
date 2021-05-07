@@ -37,19 +37,45 @@
 #include "testpmd.h"
 #include "ecdc.h"
 
-void ecdc_rx_packet(struct rte_mbuf  * pkt, struct fwd_stream *fs) {
-    struct rte_ether_hdr *eth_h;
-    //struct rte_ipv4_hdr *ip_h;
-    uint16_t eth_type;
-    fs->rx_packets++;
-    eth_h = rte_pktmbuf_mtod(pkt, struct rte_ether_hdr *);
-    eth_type = RTE_BE_TO_CPU_16(eth_h->ether_type);
 
-    if (eth_type == RTE_ETHER_TYPE_ARP) {
-        fs->rx_etharp++;
-    } else if (eth_type == RTE_ETHER_TYPE_IPV4) {
-        fs->rx_ethip++;
-    } else {
-        fs->rx_ethoth++;
-    }
+int ecdc_eth_counters(struct rte_mbuf  * pkt, struct fwd_stream *fs) {
+  struct rte_ether_hdr *eth_h;
+  uint16_t eth_type;
+
+  eth_h = rte_pktmbuf_mtod(pkt, struct rte_ether_hdr *);
+  eth_type = RTE_BE_TO_CPU_16(eth_h->ether_type);
+
+  if (eth_type == RTE_ETHER_TYPE_ARP) {
+      fs->rx_etharp++;
+      return 0;
+  } else if (eth_type == RTE_ETHER_TYPE_IPV4) {
+      fs->rx_ethip++;
+      return  1;
+  } else {
+      fs->rx_ethoth++;
+      return 0;
+  }
+}
+
+int ecdc_ip_counters(struct rte_mbuf  * pkt, struct fwd_stream *fs) {
+  struct rte_ipv4_hdr *ip_h;
+  ip_h = rte_pktmbuf_mtod_offset(pkt, struct rte_ipv4_hdr *, sizeof(struct rte_ether_hdr));
+  if (ip_h->next_proto_id == IPPROTO_UDP ) {
+    fs->rx_ipudp++;
+    return 1;
+  } else {
+    fs->rx_ipoth++;
+    return 0;
+  }
+}
+
+void ecdc_rx_packet(struct rte_mbuf  * pkt, struct fwd_stream *fs) {
+    fs->rx_packets++;
+
+    if (ecdc_eth_counters(pkt, fs) == 0)
+      return;
+
+    if (ecdc_ip_counters(pkt, fs) == 0)
+      return;
+
 }
