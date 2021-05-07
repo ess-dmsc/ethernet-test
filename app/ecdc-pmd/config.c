@@ -186,7 +186,8 @@ nic_stats_display(portid_t port_id)
 	uint64_t mpps_rx, mpps_tx, mbps_rx, mbps_tx;
 	struct rte_eth_stats stats;
 
-	static const char *nic_stats_border = "########################";
+//	static const char *nic_stats_border = "########################";
+	static const char *nic_stats_border = "                        ";
 
 	if (port_id_is_invalid(port_id, ENABLED_WARN)) {
 		print_valid_ports();
@@ -240,9 +241,8 @@ nic_stats_display(portid_t port_id)
 	printf("  Rx-pps: %12"PRIu64"          Rx-bps: %12"PRIu64"\n  Tx-pps: %12"
 	       PRIu64"          Tx-bps: %12"PRIu64"\n", mpps_rx, mbps_rx * 8,
 	       mpps_tx, mbps_tx * 8);
-
-	printf("  %s############################%s\n",
-	       nic_stats_border, nic_stats_border);
+	// printf("  %s############################%s\n",
+	//        nic_stats_border, nic_stats_border);
 }
 
 void
