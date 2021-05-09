@@ -61,8 +61,6 @@ static uint16_t nb_txd = RTE_TEST_TX_DESC_DEFAULT;
 /* ethernet addresses of ports */
 static struct rte_ether_addr l2fwd_ports_eth_addr[RTE_MAX_ETHPORTS];
 
-/* mask of enabled ports */
-static uint32_t l2fwd_enabled_port_mask = 0;
 
 /* list of enabled ports */
 static uint32_t l2fwd_dst_ports[RTE_MAX_ETHPORTS];
@@ -76,7 +74,6 @@ static struct port_pair_params port_pair_params_array[RTE_MAX_ETHPORTS / 2];
 static struct port_pair_params *port_pair_params;
 static uint16_t nb_port_pair_params;
 
-static unsigned int l2fwd_rx_queue_per_lcore = 1;
 
 #define MAX_RX_QUEUE_PER_LCORE 16
 #define MAX_TX_QUEUE_PER_PORT 16
@@ -108,13 +105,23 @@ struct l2fwd_port_statistics {
 struct l2fwd_port_statistics port_statistics[RTE_MAX_ETHPORTS];
 
 #define MAX_TIMER_PERIOD 86400 /* 1 day max */
-/* A tsc-based timer responsible for triggering statistics printout */
-//static uint64_t timer_period = 10; /* default period is 10 seconds */
 
 /// ECDC
 struct {
-	static uint64_t timer_period = 10;
+        /* A tsc-based timer responsible for triggering statistics printout */
+	uint64_t timer_period;
+        unsigned int l2fwd_rx_queue_per_lcore;
+        /* mask of enabled ports */
+        uint32_t l2fwd_enabled_port_mask;
+        int rxonly;
 } ecdc_options;
+
+void ecdc_init() {
+  ecdc_options.timer_period = 10;
+  ecdc_options.l2fwd_rx_queue_per_lcore = 1;
+  ecdc_options.l2fwd_enabled_port_mask = 0;
+  ecdc_options.rxonly = 0;
+}
 ///
 
 /* Print out statistics on packets dropped */
@@ -138,7 +145,7 @@ print_stats(void)
 
 	for (portid = 0; portid < RTE_MAX_ETHPORTS; portid++) {
 		/* skip disabled ports */
-		if ((l2fwd_enabled_port_mask & (1 << portid)) == 0)
+		if ((ecdc_options.l2fwd_enabled_port_mask & (1 << portid)) == 0)
 			continue;
 		printf("\nStatistics for port %u ------------------------------"
 			   "\nPackets sent: %24"PRIu64
@@ -288,6 +295,10 @@ l2fwd_main_loop(void)
 
 			port_statistics[portid].rx += nb_rx;
 
+                        if (ecdc_options.rxonly) {
+                          continue;
+                        }
+
 			for (j = 0; j < nb_rx; j++) {
 				m = pkts_burst[j];
 				rte_prefetch0(rte_pktmbuf_mtod(m, void *));
@@ -425,6 +436,7 @@ l2fwd_parse_timer_period(const char *q_arg)
 }
 
 static const char short_options[] =
+	"r"   /* rxonly */
 	"p:"  /* portmask */
 	"q:"  /* number of queues */
 	"T:"  /* timer period */
@@ -466,10 +478,14 @@ l2fwd_parse_args(int argc, char **argv)
 				  lgopts, &option_index)) != EOF) {
 
 		switch (opt) {
+                /* rx only */
+                case 'r':
+			ecdc_options.rxonly = 1;
+                        break;
 		/* portmask */
 		case 'p':
-			l2fwd_enabled_port_mask = l2fwd_parse_portmask(optarg);
-			if (l2fwd_enabled_port_mask == 0) {
+			ecdc_options.l2fwd_enabled_port_mask = l2fwd_parse_portmask(optarg);
+			if (ecdc_options.l2fwd_enabled_port_mask == 0) {
 				printf("invalid portmask\n");
 				l2fwd_usage(prgname);
 				return -1;
@@ -478,8 +494,8 @@ l2fwd_parse_args(int argc, char **argv)
 
 		/* nqueue */
 		case 'q':
-			l2fwd_rx_queue_per_lcore = l2fwd_parse_nqueue(optarg);
-			if (l2fwd_rx_queue_per_lcore == 0) {
+			ecdc_options.l2fwd_rx_queue_per_lcore = l2fwd_parse_nqueue(optarg);
+			if (ecdc_options.l2fwd_rx_queue_per_lcore == 0) {
 				printf("invalid queue number\n");
 				l2fwd_usage(prgname);
 				return -1;
@@ -537,7 +553,7 @@ check_port_pair_config(void)
 
 		for (i = 0; i < NUM_PORTS; i++)  {
 			portid = port_pair_params[index].port[i];
-			if ((l2fwd_enabled_port_mask & (1 << portid)) == 0) {
+			if ((ecdc_options.l2fwd_enabled_port_mask & (1 << portid)) == 0) {
 				printf("port %u is not enabled in port mask\n",
 				       portid);
 				return -1;
@@ -558,7 +574,7 @@ check_port_pair_config(void)
 		port_pair_config_mask |= port_pair_mask;
 	}
 
-	l2fwd_enabled_port_mask &= port_pair_config_mask;
+	ecdc_options.l2fwd_enabled_port_mask &= port_pair_config_mask;
 
 	return 0;
 }
@@ -650,6 +666,8 @@ main(int argc, char **argv)
 	unsigned int nb_lcores = 0;
 	unsigned int nb_mbufs;
 
+        ecdc_init();
+
 	/* init EAL */
 	ret = rte_eal_init(argc, argv);
 	if (ret < 0)
@@ -681,7 +699,7 @@ main(int argc, char **argv)
 	}
 
 	/* check port mask to possible port mask */
-	if (l2fwd_enabled_port_mask & ~((1 << nb_ports) - 1))
+	if (ecdc_options.l2fwd_enabled_port_mask & ~((1 << nb_ports) - 1))
 		rte_exit(EXIT_FAILURE, "Invalid portmask; possible (0x%x)\n",
 			(1 << nb_ports) - 1);
 
@@ -703,7 +721,7 @@ main(int argc, char **argv)
 	} else {
 		RTE_ETH_FOREACH_DEV(portid) {
 			/* skip ports that are not enabled */
-			if ((l2fwd_enabled_port_mask & (1 << portid)) == 0)
+			if ((ecdc_options.l2fwd_enabled_port_mask & (1 << portid)) == 0)
 				continue;
 
 			if (nb_ports_in_mask % 2) {
@@ -727,13 +745,13 @@ main(int argc, char **argv)
 	/* Initialize the port/queue configuration of each logical core */
 	RTE_ETH_FOREACH_DEV(portid) {
 		/* skip ports that are not enabled */
-		if ((l2fwd_enabled_port_mask & (1 << portid)) == 0)
+		if ((ecdc_options.l2fwd_enabled_port_mask & (1 << portid)) == 0)
 			continue;
 
 		/* get the lcore_id for this port */
 		while (rte_lcore_is_enabled(rx_lcore_id) == 0 ||
 		       lcore_queue_conf[rx_lcore_id].n_rx_port ==
-		       l2fwd_rx_queue_per_lcore) {
+		       ecdc_options.l2fwd_rx_queue_per_lcore) {
 			rx_lcore_id++;
 			if (rx_lcore_id >= RTE_MAX_LCORE)
 				rte_exit(EXIT_FAILURE, "Not enough cores\n");
@@ -769,7 +787,7 @@ main(int argc, char **argv)
 		struct rte_eth_dev_info dev_info;
 
 		/* skip ports that are not enabled */
-		if ((l2fwd_enabled_port_mask & (1 << portid)) == 0) {
+		if ((ecdc_options.l2fwd_enabled_port_mask & (1 << portid)) == 0) {
 			printf("Skipping disabled port %u\n", portid);
 			continue;
 		}
@@ -793,19 +811,16 @@ main(int argc, char **argv)
 			rte_exit(EXIT_FAILURE, "Cannot configure device: err=%d, port=%u\n",
 				  ret, portid);
 
-		ret = rte_eth_dev_adjust_nb_rx_tx_desc(portid, &nb_rxd,
-						       &nb_txd);
+		ret = rte_eth_dev_adjust_nb_rx_tx_desc(portid, &nb_rxd, &nb_txd);
 		if (ret < 0)
 			rte_exit(EXIT_FAILURE,
 				 "Cannot adjust number of descriptors: err=%d, port=%u\n",
 				 ret, portid);
 
-		ret = rte_eth_macaddr_get(portid,
-					  &l2fwd_ports_eth_addr[portid]);
+		ret = rte_eth_macaddr_get(portid, &l2fwd_ports_eth_addr[portid]);
 		if (ret < 0)
 			rte_exit(EXIT_FAILURE,
-				 "Cannot get MAC address: err=%d, port=%u\n",
-				 ret, portid);
+				 "Cannot get MAC address: err=%d, port=%u\n", ret, portid);
 
 		/* init one RX queue */
 		fflush(stdout);
@@ -885,7 +900,7 @@ main(int argc, char **argv)
 			"All available ports are disabled. Please set portmask.\n");
 	}
 
-	check_all_ports_link_status(l2fwd_enabled_port_mask);
+	check_all_ports_link_status(ecdc_options.l2fwd_enabled_port_mask);
 
 	ret = 0;
 	/* launch per-lcore init on every lcore */
@@ -898,7 +913,7 @@ main(int argc, char **argv)
 	}
 
 	RTE_ETH_FOREACH_DEV(portid) {
-		if ((l2fwd_enabled_port_mask & (1 << portid)) == 0)
+		if ((ecdc_options.l2fwd_enabled_port_mask & (1 << portid)) == 0)
 			continue;
 		printf("Closing port %d...", portid);
 		ret = rte_eth_dev_stop(portid);
