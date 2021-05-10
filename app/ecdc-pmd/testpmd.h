@@ -210,10 +210,10 @@ struct tunnel_ops {
 struct rte_port {
 	struct rte_eth_dev_info dev_info;   /**< PCI info + driver name */
 	struct rte_eth_conf     dev_conf;   /**< Port configuration. */
-	struct rte_ether_addr       eth_addr;   /**< Port ethernet address */
+	struct rte_ether_addr   eth_addr;   /**< Port ethernet address */
 	struct rte_eth_stats    stats;      /**< Last port statistics */
 	unsigned int            socket_id;  /**< For NUMA support */
-	uint16_t		parse_tunnel:1; /**< Parse internal headers */
+	uint16_t		            parse_tunnel:1; /**< Parse internal headers */
 	uint16_t                tso_segsz;  /**< Segmentation offload MSS for non-tunneled packets. */
 	uint16_t                tunnel_tso_segsz; /**< Segmentation offload MSS for tunneled pkts. */
 	uint16_t                tx_vlan_id;/**< The tag ID */
@@ -223,7 +223,6 @@ struct rte_port {
 	uint8_t                 need_reconfig;  /**< need reconfiguring port or not */
 	uint8_t                 need_reconfig_queues; /**< need reconfiguring queues or not */
 	uint8_t                 rss_flag;   /**< enable rss or not */
-	uint8_t                 dcb_flag;   /**< enable dcb */
 	uint16_t                nb_rx_desc[RTE_MAX_QUEUES_PER_PORT+1]; /**< per queue rx desc number */
 	uint16_t                nb_tx_desc[RTE_MAX_QUEUES_PER_PORT+1]; /**< per queue tx desc number */
 	struct rte_eth_rxconf   rx_conf[RTE_MAX_QUEUES_PER_PORT+1]; /**< per queue rx configuration */
@@ -422,8 +421,8 @@ extern uint64_t noisy_lkup_num_writes;
 extern uint64_t noisy_lkup_num_reads;
 extern uint64_t noisy_lkup_num_reads_writes;
 
-extern uint8_t dcb_config;
-extern uint8_t dcb_test;
+// extern uint8_t dcb_config;
+// extern uint8_t dcb_test;
 
 extern uint32_t mbuf_data_size_n;
 extern uint16_t mbuf_data_size[MAX_SEGS_BUFFER_SPLIT];
@@ -876,9 +875,9 @@ void set_port_slave_flag(portid_t slave_pid);
 void clear_port_slave_flag(portid_t slave_pid);
 uint8_t port_is_bonding_slave(portid_t slave_pid);
 
-int init_port_dcb_config(portid_t pid, enum dcb_mode_enable dcb_mode,
-		     enum rte_eth_nb_tcs num_tcs,
-		     uint8_t pfc_en);
+// int init_port_dcb_config(portid_t pid, enum dcb_mode_enable dcb_mode,
+// 		     enum rte_eth_nb_tcs num_tcs,
+// 		     uint8_t pfc_en);
 int start_port(portid_t pid);
 void stop_port(portid_t pid);
 void close_port(portid_t pid);
@@ -897,24 +896,12 @@ void fdir_set_flex_mask(portid_t port_id,
 			   struct rte_eth_fdir_flex_mask *cfg);
 void fdir_set_flex_payload(portid_t port_id,
 			   struct rte_eth_flex_payload_cfg *cfg);
-void port_rss_reta_info(portid_t port_id,
-			struct rte_eth_rss_reta_entry64 *reta_conf,
-			uint16_t nb_entries);
-
-void set_vf_traffic(portid_t port_id, uint8_t is_rx, uint16_t vf, uint8_t on);
 
 int
 rx_queue_setup(uint16_t port_id, uint16_t rx_queue_id,
 	       uint16_t nb_rx_desc, unsigned int socket_id,
 	       struct rte_eth_rxconf *rx_conf, struct rte_mempool *mp);
 
-int set_queue_rate_limit(portid_t port_id, uint16_t queue_idx, uint16_t rate);
-int set_vf_rate_limit(portid_t port_id, uint16_t vf, uint16_t rate,
-				uint64_t q_msk);
-
-void port_rss_hash_conf_show(portid_t port_id, int show_rss_key);
-void port_rss_hash_key_update(portid_t port_id, char rss_type[],
-			      uint8_t *hash_key, uint8_t hash_key_len);
 int rx_queue_id_is_invalid(queueid_t rxq_id);
 int tx_queue_id_is_invalid(queueid_t txq_id);
 void setup_gro(const char *onoff, portid_t port_id);
@@ -928,21 +915,6 @@ void eth_set_allmulticast_mode(uint16_t port, int enable);
 int eth_link_get_nowait_print_err(uint16_t port_id, struct rte_eth_link *link);
 int eth_macaddr_get_print_err(uint16_t port_id,
 			struct rte_ether_addr *mac_addr);
-
-/* Functions to display the set of MAC addresses added to a port*/
-void show_macs(portid_t port_id);
-void show_mcast_macs(portid_t port_id);
-
-/* Functions to manage the set of filtered Multicast MAC addresses */
-void mcast_addr_add(portid_t port_id, struct rte_ether_addr *mc_addr);
-void mcast_addr_remove(portid_t port_id, struct rte_ether_addr *mc_addr);
-void port_dcb_info_display(portid_t port_id);
-
-uint8_t *open_file(const char *file_path, uint32_t *size);
-int save_file(const char *file_path, uint8_t *buf, uint32_t size);
-int close_file(uint8_t *buf);
-
-void port_queue_region_info_display(portid_t port_id, void *buf);
 
 enum print_warning {
 	ENABLED_WARN = 0,
