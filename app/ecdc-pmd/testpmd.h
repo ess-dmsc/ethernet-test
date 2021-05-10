@@ -784,16 +784,6 @@ struct rte_flow_action_handle *port_action_handle_get_by_id(portid_t port_id,
 							    uint32_t id);
 int port_action_handle_update(portid_t port_id, uint32_t id,
 			      const struct rte_flow_action *action);
-int port_flow_validate(portid_t port_id,
-		       const struct rte_flow_attr *attr,
-		       const struct rte_flow_item *pattern,
-		       const struct rte_flow_action *actions,
-		       const struct tunnel_ops *tunnel_ops);
-int port_action_handle_query(portid_t port_id, uint32_t id);
-void update_age_action_context(const struct rte_flow_action *actions,
-		     struct port_flow *pf);
-int port_flow_query(portid_t port_id, uint32_t rule,
-		    const struct rte_flow_action *action);
 const char *port_flow_tunnel_type(struct rte_flow_tunnel *tunnel);
 struct port_flow_tunnel *
 port_flow_locate_tunnel(uint16_t port_id, struct rte_flow_tunnel *tun);
