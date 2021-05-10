@@ -336,11 +336,6 @@ uint16_t port_topology = PORT_TOPOLOGY_PAIRED; /* Ports are paired by default */
 uint8_t no_flush_rx = 0; /* flush by default */
 
 /*
- * Flow API isolated mode.
- */
-uint8_t flow_isolate_all;
-
-/*
  * Avoids to check link status when starting/stopping a port.
  */
 uint8_t no_link_check = 0; /* check by default */
@@ -2443,14 +2438,6 @@ start_port(portid_t pid)
 		if (port->need_reconfig > 0) {
 			port->need_reconfig = 0;
 
-			if (flow_isolate_all) {
-				int ret = port_flow_isolate(pi, 1);
-				if (ret) {
-					printf("Failed to apply isolated"
-					       " mode on port %d\n", pi);
-					return -1;
-				}
-			}
 			configure_rxtx_dump_callbacks(0);
 			printf("Configuring Port %d (socket %u)\n", pi,
 					port->socket_id);
@@ -3709,20 +3696,6 @@ main(int argc, char** argv)
 		rte_stats_bitrate_reg(bitrate_data);
 	}
 #endif
-
-// #ifdef RTE_LIB_CMDLINE
-// 	if (strlen(cmdline_filename) != 0)
-// 		cmdline_read_from_file(cmdline_filename);
-//
-// 	if (interactive == 1) {
-// 		if (auto_start) {
-// 			printf("Start automatic packet forwarding\n");
-// 			start_packet_forwarding(0);
-// 		}
-// 		prompt();
-// 		pmd_test_exit();
-// 	} else
-// #endif
 	{
 		char c;
 		int rc;

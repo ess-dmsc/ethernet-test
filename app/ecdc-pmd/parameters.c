@@ -1255,8 +1255,6 @@ launch_args_parse(int argc, char** argv)
 				lsc_interrupt = 0;
 			if (!strcmp(lgopts[opt_idx].name, "no-rmv-interrupt"))
 				rmv_interrupt = 0;
-			if (!strcmp(lgopts[opt_idx].name, "flow-isolate-all"))
-				flow_isolate_all = 1;
 			if (!strcmp(lgopts[opt_idx].name, "tx-offloads")) {
 				char *end = NULL;
 				n = strtoull(optarg, &end, 16);

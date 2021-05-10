@@ -336,7 +336,6 @@ extern char cmdline_filename[PATH_MAX]; /**< offline commands file */
 extern uint8_t  numa_support; /**< set by "--numa" parameter */
 extern uint16_t port_topology; /**< set by "--port-topology" parameter */
 extern uint8_t no_flush_rx; /**<set by "--no-flush-rx" parameter */
-extern uint8_t flow_isolate_all; /**< set by "--flow-isolate-all */
 extern uint8_t  mp_alloc_type;
 /**< set by "--mp-anon" or "--mp-alloc" parameter */
 extern uint32_t eth_link_speed;
@@ -739,7 +738,6 @@ unsigned int parse_item_list(char* str, const char* item_name,
 			unsigned int max_items,
 			unsigned int *parsed_items, int check_unique_values);
 void launch_args_parse(int argc, char** argv);
-void cmdline_read_from_file(const char *filename);
 void prompt(void);
 void prompt_exit(void);
 void nic_stats_display(portid_t port_id);
@@ -748,9 +746,6 @@ void nic_xstats_display(portid_t port_id);
 void nic_xstats_clear(portid_t port_id);
 void device_infos_display(const char *identifier);
 void port_infos_display(portid_t port_id);
-void port_summary_display(portid_t port_id);
-void port_eeprom_display(portid_t port_id);
-void port_module_eeprom_display(portid_t port_id);
 void port_summary_header_display(void);
 void rx_queue_infos_display(portid_t port_idi, uint16_t queue_id);
 void tx_queue_infos_display(portid_t port_idi, uint16_t queue_id);
@@ -788,9 +783,6 @@ const char *port_flow_tunnel_type(struct rte_flow_tunnel *tunnel);
 struct port_flow_tunnel *
 port_flow_locate_tunnel(uint16_t port_id, struct rte_flow_tunnel *tun);
 void port_flow_tunnel_list(portid_t port_id);
-void port_flow_tunnel_destroy(portid_t port_id, uint32_t tunnel_id);
-void port_flow_tunnel_create(portid_t port_id, const struct tunnel_ops *ops);
-int port_flow_isolate(portid_t port_id, int set);
 int port_meter_policy_add(portid_t port_id, uint32_t policy_id,
 		const struct rte_flow_action *actions);
 
