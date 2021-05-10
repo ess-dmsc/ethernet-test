@@ -745,11 +745,9 @@ void nic_stats_clear(portid_t port_id);
 void nic_xstats_display(portid_t port_id);
 void nic_xstats_clear(portid_t port_id);
 void device_infos_display(const char *identifier);
-void port_infos_display(portid_t port_id);
 void port_summary_header_display(void);
 void rx_queue_infos_display(portid_t port_idi, uint16_t queue_id);
 void tx_queue_infos_display(portid_t port_idi, uint16_t queue_id);
-void fwd_lcores_config_display(void);
 void pkt_fwd_config_display(struct fwd_config *cfg);
 void rxtx_config_display(void);
 void fwd_config_setup(void);
@@ -770,21 +768,10 @@ void port_reg_bit_field_set(portid_t port_id, uint32_t reg_off,
 			    uint8_t bit1_pos, uint8_t bit2_pos, uint32_t value);
 void port_reg_display(portid_t port_id, uint32_t reg_off);
 void port_reg_set(portid_t port_id, uint32_t reg_off, uint32_t value);
-int port_action_handle_create(portid_t port_id, uint32_t id,
-			      const struct rte_flow_indir_action_conf *conf,
-			      const struct rte_flow_action *action);
-int port_action_handle_destroy(portid_t port_id,
-			       uint32_t n, const uint32_t *action);
-struct rte_flow_action_handle *port_action_handle_get_by_id(portid_t port_id,
-							    uint32_t id);
-int port_action_handle_update(portid_t port_id, uint32_t id,
-			      const struct rte_flow_action *action);
 const char *port_flow_tunnel_type(struct rte_flow_tunnel *tunnel);
 struct port_flow_tunnel *
 port_flow_locate_tunnel(uint16_t port_id, struct rte_flow_tunnel *tun);
 void port_flow_tunnel_list(portid_t port_id);
-int port_meter_policy_add(portid_t port_id, uint32_t policy_id,
-		const struct rte_flow_action *actions);
 
 int set_fwd_lcores_list(unsigned int *lcorelist, unsigned int nb_lc);
 int set_fwd_lcores_mask(uint64_t lcoremask);
@@ -795,19 +782,12 @@ void set_fwd_ports_mask(uint64_t portmask);
 void set_fwd_ports_number(uint16_t nb_pt);
 int port_is_forwarding(portid_t port_id);
 
-void set_xstats_hide_zero(uint8_t on_off);
-
-void set_record_core_cycles(uint8_t on_off);
-void set_record_burst_stats(uint8_t on_off);
 void set_verbose_level(uint16_t vb_level);
 void set_rx_pkt_segments(unsigned int *seg_lengths, unsigned int nb_segs);
 void show_rx_pkt_segments(void);
 void set_rx_pkt_offsets(unsigned int *seg_offsets, unsigned int nb_offs);
 void show_rx_pkt_offsets(void);
-void set_tx_pkt_segments(unsigned int *seg_lengths, unsigned int nb_segs);
 void show_tx_pkt_segments(void);
-void set_tx_pkt_times(unsigned int *tx_times);
-void show_tx_pkt_times(void);
 void set_tx_pkt_split(const char *name);
 int parse_fec_mode(const char *name, enum rte_eth_fec_mode *mode);
 void show_fec_capability(uint32_t num, struct rte_eth_fec_capa *speed_fec_capa);

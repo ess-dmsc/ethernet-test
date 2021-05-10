@@ -1201,43 +1201,6 @@ launch_args_parse(int argc, char** argv)
 				else
 					rte_exit(EXIT_FAILURE, "rxfreet must be >= 0\n");
 			}
-			// if (!strcmp(lgopts[opt_idx].name, "rxoffs")) {
-			// 	unsigned int seg_off[MAX_SEGS_BUFFER_SPLIT];
-			// 	unsigned int nb_offs;
-			//
-			// 	nb_offs = parse_item_list
-			// 			(optarg, "rxpkt offsets",
-			// 			 MAX_SEGS_BUFFER_SPLIT,
-			// 			 seg_off, 0);
-			// 	if (nb_offs > 0)
-			// 		set_rx_pkt_offsets(seg_off, nb_offs);
-			// 	else
-			// 		rte_exit(EXIT_FAILURE, "bad rxoffs\n");
-			// }
-			// if (!strcmp(lgopts[opt_idx].name, "rxpkts")) {
-			// 	unsigned int seg_len[MAX_SEGS_BUFFER_SPLIT];
-			// 	unsigned int nb_segs;
-			//
-			// 	nb_segs = parse_item_list
-			// 			(optarg, "rxpkt segments",
-			// 			 MAX_SEGS_BUFFER_SPLIT,
-			// 			 seg_len, 0);
-			// 	if (nb_segs > 0)
-			// 		set_rx_pkt_segments(seg_len, nb_segs);
-			// 	else
-			// 		rte_exit(EXIT_FAILURE, "bad rxpkts\n");
-			// }
-			// if (!strcmp(lgopts[opt_idx].name, "txpkts")) {
-			// 	unsigned seg_lengths[RTE_MAX_SEGS_PER_PKT];
-			// 	unsigned int nb_segs;
-			//
-			// 	nb_segs = parse_item_list(optarg, "txpkt segments",
-			// 			RTE_MAX_SEGS_PER_PKT, seg_lengths, 0);
-			// 	if (nb_segs > 0)
-			// 		set_tx_pkt_segments(seg_lengths, nb_segs);
-			// 	else
-			// 		rte_exit(EXIT_FAILURE, "bad txpkts\n");
-			// }
 			if (!strcmp(lgopts[opt_idx].name, "txonly-multi-flow"))
 				txonly_multi_flow = 1;
 			if (!strcmp(lgopts[opt_idx].name, "no-flush-rx"))
