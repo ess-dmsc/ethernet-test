@@ -128,8 +128,6 @@ usage(char* progname)
 	printf("  --disable-rss: disable rss.\n");
 	printf("  --port-topology=<paired|chained|loop>: set port topology (paired "
 	       "is default).\n");
-	printf("  --forward-mode=N: set forwarding mode (N: %s).\n",
-	       list_pkt_forwarding_modes());
 	printf("  --forward-mode=5tswap: set forwarding mode to "
 			"swap L2,L3,L4 for MAC, IPv4/IPv6 and TCP/UDP only.\n");
 	printf("  --rss-ip: set RSS functions to IPv4/IPv6 only .\n");
@@ -994,8 +992,6 @@ launch_args_parse(int argc, char** argv)
 						 " must be: paired, chained or loop\n",
 						 optarg);
 			}
-			if (!strcmp(lgopts[opt_idx].name, "forward-mode"))
-				set_pkt_forwarding_mode(optarg);
 			if (!strcmp(lgopts[opt_idx].name, "rss-ip"))
 				rss_hf = ETH_RSS_IP;
 			if (!strcmp(lgopts[opt_idx].name, "rss-udp"))

@@ -2712,8 +2712,8 @@ stop_port(portid_t pid)
 			}
 		}
 
-		if (port->flow_list)
-			port_flow_flush(pi);
+		// if (port->flow_list)
+		// 	port_flow_flush(pi);
 
 		if (rte_eth_dev_stop(pi) != 0)
 			RTE_LOG(ERR, EAL, "rte_eth_dev_stop failed for port %u\n",
@@ -2786,7 +2786,7 @@ close_port(portid_t pid)
 			continue;
 		}
 
-		port_flow_flush(pi);
+		// port_flow_flush(pi);
 		rte_eth_dev_close(pi);
 	}
 
@@ -2925,7 +2925,7 @@ detach_device(struct rte_device *dev)
 				printf("Port %u not stopped\n", sibling);
 				return;
 			}
-			port_flow_flush(sibling);
+			//port_flow_flush(sibling);
 		}
 	}
 
@@ -2982,7 +2982,7 @@ detach_devargs(char *identifier)
 				rte_devargs_reset(&da);
 				return;
 			}
-			port_flow_flush(port_id);
+			//port_flow_flush(port_id);
 		}
 	}
 

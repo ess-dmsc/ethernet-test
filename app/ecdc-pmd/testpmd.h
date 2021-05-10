@@ -789,22 +789,11 @@ int port_flow_validate(portid_t port_id,
 		       const struct rte_flow_item *pattern,
 		       const struct rte_flow_action *actions,
 		       const struct tunnel_ops *tunnel_ops);
-int port_flow_create(portid_t port_id,
-		     const struct rte_flow_attr *attr,
-		     const struct rte_flow_item *pattern,
-		     const struct rte_flow_action *actions,
-		     const struct tunnel_ops *tunnel_ops);
 int port_action_handle_query(portid_t port_id, uint32_t id);
 void update_age_action_context(const struct rte_flow_action *actions,
 		     struct port_flow *pf);
-int port_flow_destroy(portid_t port_id, uint32_t n, const uint32_t *rule);
-int port_flow_flush(portid_t port_id);
-int port_flow_dump(portid_t port_id, bool dump_all,
-			uint32_t rule, const char *file_name);
 int port_flow_query(portid_t port_id, uint32_t rule,
 		    const struct rte_flow_action *action);
-void port_flow_list(portid_t port_id, uint32_t n, const uint32_t *group);
-void port_flow_aged(portid_t port_id, uint8_t destroy);
 const char *port_flow_tunnel_type(struct rte_flow_tunnel *tunnel);
 struct port_flow_tunnel *
 port_flow_locate_tunnel(uint16_t port_id, struct rte_flow_tunnel *tun);
@@ -814,9 +803,6 @@ void port_flow_tunnel_create(portid_t port_id, const struct tunnel_ops *ops);
 int port_flow_isolate(portid_t port_id, int set);
 int port_meter_policy_add(portid_t port_id, uint32_t policy_id,
 		const struct rte_flow_action *actions);
-
-void rx_ring_desc_display(portid_t port_id, queueid_t rxq_id, uint16_t rxd_id);
-void tx_ring_desc_display(portid_t port_id, queueid_t txq_id, uint16_t txd_id);
 
 int set_fwd_lcores_list(unsigned int *lcorelist, unsigned int nb_lc);
 int set_fwd_lcores_mask(uint64_t lcoremask);
@@ -861,9 +847,6 @@ void set_tx_pkt_split(const char *name);
 int parse_fec_mode(const char *name, enum rte_eth_fec_mode *mode);
 void show_fec_capability(uint32_t num, struct rte_eth_fec_capa *speed_fec_capa);
 void set_nb_pkt_per_burst(uint16_t pkt_burst);
-char *list_pkt_forwarding_modes(void);
-char *list_pkt_forwarding_retry_modes(void);
-void set_pkt_forwarding_mode(const char *fwd_mode);
 void start_packet_forwarding(int with_tx_first);
 void fwd_stats_display(void);
 void fwd_stats_reset(void);
@@ -892,10 +875,7 @@ void pmd_test_exit(void);
 #if defined(RTE_NET_I40E) || defined(RTE_NET_IXGBE)
 void fdir_get_infos(portid_t port_id);
 #endif
-void fdir_set_flex_mask(portid_t port_id,
-			   struct rte_eth_fdir_flex_mask *cfg);
-void fdir_set_flex_payload(portid_t port_id,
-			   struct rte_eth_flex_payload_cfg *cfg);
+
 
 int
 rx_queue_setup(uint16_t port_id, uint16_t rx_queue_id,
@@ -904,10 +884,7 @@ rx_queue_setup(uint16_t port_id, uint16_t rx_queue_id,
 
 int rx_queue_id_is_invalid(queueid_t rxq_id);
 int tx_queue_id_is_invalid(queueid_t txq_id);
-void setup_gro(const char *onoff, portid_t port_id);
-void setup_gro_flush_cycles(uint8_t cycles);
-void show_gro(portid_t port_id);
-void setup_gso(const char *mode, portid_t port_id);
+
 int eth_dev_info_get_print_err(uint16_t port_id,
 			struct rte_eth_dev_info *dev_info);
 void eth_set_promisc_mode(uint16_t port_id, int enable);
