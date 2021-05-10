@@ -16,4 +16,4 @@ pmd:
 	./scripts/build.bash
 
 runpmd:
-	sudo ./dpdk/build/app/dpdk-ecdcpmd -c 0x1f --legacy-mem -- --rxq 4 --txq 4 --nb-cores=4 --stats-period=3
+	sudo ./dpdk/build/app/dpdk-ecdcpmd -c 0x1f --legacy-mem -- --rxq 4 --txq 4 --nb-cores=4 --stats-period=1

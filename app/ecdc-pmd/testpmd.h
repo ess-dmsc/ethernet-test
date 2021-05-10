@@ -140,6 +140,7 @@ struct fwd_stream {
 
 	/* "read-write" results */
 	uint64_t rx_packets;  /**< received packets */
+	uint64_t rx_bytes; /**< received bytes*/
 	uint64_t tx_packets;  /**< received packets transmitted */
 	uint64_t fwd_dropped; /**< received packets not forwarded */
 	uint64_t rx_bad_ip_csum ; /**< received packets has bad ip checksum */

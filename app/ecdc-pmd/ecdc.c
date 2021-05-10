@@ -86,6 +86,7 @@ int ecdc_essdaq_counters(struct rte_mbuf  * pkt, struct fwd_stream *fs) {
 
 void ecdc_rx_packet(struct rte_mbuf  * pkt, struct fwd_stream *fs) {
     fs->rx_packets++;
+    fs->rx_bytes += pkt->pkt_len;
 
     if (ecdc_eth_counters(pkt, fs) == 0)
       return;

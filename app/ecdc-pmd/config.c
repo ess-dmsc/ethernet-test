@@ -185,23 +185,13 @@ nic_stats_display(portid_t port_id)
 								diff_ns;
 	uint64_t mpps_rx, mpps_tx, mbps_rx, mbps_tx;
 	struct rte_eth_stats stats;
-
-//	static const char *nic_stats_border = "########################";
-	static const char *nic_stats_border = "                        ";
-
+	
 	if (port_id_is_invalid(port_id, ENABLED_WARN)) {
 		print_valid_ports();
 		return;
 	}
 	rte_eth_stats_get(port_id, &stats);
-	printf("\n  %s NIC statistics for port %-2d %s\n",
-	       nic_stats_border, port_id, nic_stats_border);
-
-	printf("  RX-packets: %-10"PRIu64" RX-missed: %-10"PRIu64" RX-bytes:  "
-	       "%-"PRIu64"\n", stats.ipackets, stats.imissed, stats.ibytes);
-
-	printf("  RX-errors:  %-10"PRIu64" RX-nombuf: %-10"PRIu64"\n",
-	  stats.ierrors, stats.rx_nombuf);
+	printf("\nNIC statistics for port %-2d\n", port_id);
 
 	diff_ns = 0;
 	if (clock_gettime(CLOCK_TYPE_ID, &cur_time) == 0) {

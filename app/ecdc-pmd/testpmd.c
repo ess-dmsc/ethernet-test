@@ -1790,30 +1790,21 @@ pkt_burst_stats_display(const char *rx_tx, struct pkt_burst_stats *pbs)
 	}
 }
 
+
 static void
-fwd_stream_stats_display(streamid_t stream_id)
+fwd_stream_stats_display2(streamid_t stream_id)
 {
 	struct fwd_stream *fs;
-	static const char *fwd_top_stats_border = "-------";
 
 	fs = fwd_streams[stream_id];
-	if ((fs->rx_packets == 0) && (fs->tx_packets == 0) &&
-	    (fs->fwd_dropped == 0))
-		return;
-	printf("\n  %s Forward Stats for RX Port=%2d/Queue=%2d %s\n",
-	       fwd_top_stats_border, fs->rx_port, fs->rx_queue,
-	       fwd_top_stats_border);
-	/// ECDC
-  printf("  rx_etharp:  %-14"PRIu64" rx_ethip:   %-14"PRIu64
-				" rx_ethoth:  %-14"PRIu64" \n",
+	printf("  %2d/%2d - ",fs->rx_port, fs->rx_queue);
+	printf(" %-14"PRIu64" %-14"PRIu64, fs->rx_packets, fs->rx_bytes);
+  printf(" %-14"PRIu64" %-14"PRIu64 " %-14"PRIu64,
 				fs->rx_etharp, fs->rx_ethip, fs->rx_ethoth);
-	printf("  rx_ipudp:   %-14"PRIu64" rx_ipoth:   %-14"PRIu64" \n",
-				fs->rx_ipudp, fs->rx_ipoth);
+	printf(" %-14"PRIu64" %-14"PRIu64, fs->rx_ipudp, fs->rx_ipoth);
 
-	printf("  rx_udpess:  %-14"PRIu64" rx_udpoth:  %-14"PRIu64" \n",
-				fs->rx_udpess, fs->rx_udpoth);
+	printf(" %-14"PRIu64" %-14"PRIu64, fs->rx_udpess, fs->rx_udpoth);
 	///
-	printf("  rx-packets: %-14"PRIu64, fs->rx_packets);
 
 
 	printf("\n");
@@ -1826,8 +1817,6 @@ fwd_stream_stats_display(streamid_t stream_id)
 void
 fwd_stats_display(void)
 {
-	static const char *fwd_stats_border = "----------------------";
-	static const char *acc_stats_border = "+++++++++++++++";
 	struct {
 		struct fwd_stream *rx_stream;
 		struct fwd_stream *tx_stream;
@@ -1840,6 +1829,7 @@ fwd_stats_display(void)
 	uint64_t total_rx_dropped = 0;
 	uint64_t total_tx_dropped = 0;
 	uint64_t total_rx_nombuf = 0;
+	uint64_t total_rx_ierrors = 0;
 	/// ECDC
 	uint64_t total_rx_etharp = 0;
 	uint64_t total_rx_ethip = 0;
@@ -1848,6 +1838,7 @@ fwd_stats_display(void)
 	struct rte_eth_stats stats;
 	uint64_t fwd_cycles = 0;
 	uint64_t total_recv = 0;
+	uint64_t total_rxbytes = 0;
 	uint64_t total_xmit = 0;
 	struct rte_port *port;
 	streamid_t sm_id;
@@ -1856,6 +1847,11 @@ fwd_stats_display(void)
 
 	memset(ports_stats, 0, sizeof(ports_stats));
 
+  printf("\n  Queue statistics\n");
+  printf("   P/ Q -  Packets        Bytes          ARP            IP             ");
+	printf("EthOth         UDP            IPOth          ESS            UDPOth\n");
+	printf("  ---------------------------------------------------------------------");
+	printf("------------------------------------------------------------------\n");
 	for (sm_id = 0; sm_id < cur_fwd_config.nb_fwd_streams; sm_id++) {
 		struct fwd_stream *fs = fwd_streams[sm_id];
 
@@ -1867,7 +1863,7 @@ fwd_stats_display(void)
 
 		if (cur_fwd_config.nb_fwd_streams >
 		    cur_fwd_config.nb_fwd_ports) {
-			fwd_stream_stats_display(sm_id);
+			fwd_stream_stats_display2(sm_id);
 		} else {
 			ports_stats[fs->tx_port].tx_stream = fs;
 			ports_stats[fs->rx_port].rx_stream = fs;
@@ -1885,6 +1881,7 @@ fwd_stats_display(void)
 		if (record_core_cycles)
 			fwd_cycles += fs->core_cycles;
 	}
+
 	for (i = 0; i < cur_fwd_config.nb_fwd_ports; i++) {
 		pt_id = fwd_ports_ids[i];
 		port = &ports[pt_id];
@@ -1899,27 +1896,23 @@ fwd_stats_display(void)
 		stats.rx_nombuf -= port->stats.rx_nombuf;
 
 		total_recv += stats.ipackets;
+		total_rxbytes += stats.ibytes;
 		total_xmit += stats.opackets;
 		total_rx_dropped += stats.imissed;
 		total_tx_dropped += ports_stats[pt_id].tx_dropped;
 
 		total_tx_dropped += stats.oerrors;
 		total_rx_nombuf  += stats.rx_nombuf;
+		total_rx_ierrors += stats.ierrors;
 
-		printf("\n  %s Forward statistics for port %-2d %s\n",
-		       fwd_stats_border, pt_id, fwd_stats_border);
+		printf("\n  Forward statistics for port %-2d\n", pt_id);
+		printf("           RX Packets     RX Bytes       RX Dropped     RX Total       RX Errors      RX Nombuf      TX Packets     TX Dropped     TX Total\n");
 
-		printf("  RX-packets: %-14"PRIu64" RX-dropped: %-14"PRIu64
-		       "RX-total: %-"PRIu64"\n", stats.ipackets, stats.imissed,
-		       stats.ipackets + stats.imissed);
+		printf("           %-14"PRIu64" %-14"PRIu64" %-14"PRIu64" %-14"PRIu64,
+		  stats.ipackets, stats.ibytes, stats.imissed, stats.ipackets + stats.imissed);
+		printf(" %-14"PRIu64" %-14"PRIu64, stats.ierrors, stats.rx_nombuf);
 
-		if (stats.ierrors + stats.rx_nombuf > 0) {
-			printf("  RX-error: %-"PRIu64"\n", stats.ierrors);
-			printf("  RX-nombufs: %-14"PRIu64"\n", stats.rx_nombuf);
-		}
-
-		printf("  TX-packets: %-14"PRIu64" TX-dropped: %-14"PRIu64
-		       "TX-total: %-"PRIu64"\n",
+		printf(" %-14"PRIu64" %-14"PRIu64" %-14"PRIu64"\n",
 		       stats.opackets, ports_stats[pt_id].tx_dropped,
 		       stats.opackets + ports_stats[pt_id].tx_dropped);
 
@@ -1931,25 +1924,12 @@ fwd_stats_display(void)
 				pkt_burst_stats_display("TX",
 				&ports_stats[pt_id].tx_stream->tx_burst_stats);
 		}
-
-		printf("  %s--------------------------------%s\n",
-		       fwd_stats_border, fwd_stats_border);
 	}
 
-	printf("\n  %s Accumulated forward statistics for all ports"
-	       "%s\n",
-	       acc_stats_border, acc_stats_border);
-	printf("  RX-packets: %-14"PRIu64" RX-dropped: %-14"PRIu64"RX-total: "
-	       "%-"PRIu64"\n"
-	       "  TX-packets: %-14"PRIu64" TX-dropped: %-14"PRIu64"TX-total: "
-	       "%-"PRIu64"\n",
-	       total_recv, total_rx_dropped, total_recv + total_rx_dropped,
+	printf("\nAccumulated forward statistics for all ports\n");
+	printf("           %-14"PRIu64" %-14"PRIu64" %-14"PRIu64" %-14"PRIu64" %-14"PRIu64" %-14"PRIu64" %-14"PRIu64" %-14"PRIu64" %-14"PRIu64"\n",
+	       total_recv, total_rxbytes, total_rx_dropped, total_recv + total_rx_dropped, total_rx_ierrors, total_rx_nombuf,
 	       total_xmit, total_tx_dropped, total_xmit + total_tx_dropped);
-	if (total_rx_nombuf > 0)
-		printf("  RX-nombufs: %-14"PRIu64"\n", total_rx_nombuf);
-	printf("  %s++++++++++++++++++++++++++++++++++++++++++++++"
-	       "%s\n",
-	       acc_stats_border, acc_stats_border);
 	if (record_core_cycles) {
 #define CYC_PER_MHZ 1E6
 		if (total_recv > 0 || total_xmit > 0) {
@@ -3735,7 +3715,6 @@ print_stats(void)
 	/* Clear screen and move to top left */
 	printf("%s%s", clr, top_left);
 
-	printf("\nPort statistics ====================================");
 	for (i = 0; i < cur_fwd_config.nb_fwd_ports; i++)
 		nic_stats_display(fwd_ports_ids[i]);
 
