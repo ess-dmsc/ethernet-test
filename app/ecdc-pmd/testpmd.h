@@ -795,23 +795,6 @@ void set_fwd_ports_mask(uint64_t portmask);
 void set_fwd_ports_number(uint16_t nb_pt);
 int port_is_forwarding(portid_t port_id);
 
-void rx_vlan_strip_set(portid_t port_id, int on);
-void rx_vlan_strip_set_on_queue(portid_t port_id, uint16_t queue_id, int on);
-
-void rx_vlan_filter_set(portid_t port_id, int on);
-void rx_vlan_all_filter_set(portid_t port_id, int on);
-void rx_vlan_qinq_strip_set(portid_t port_id, int on);
-int rx_vft_set(portid_t port_id, uint16_t vlan_id, int on);
-void vlan_extend_set(portid_t port_id, int on);
-void vlan_tpid_set(portid_t port_id, enum rte_vlan_type vlan_type,
-		   uint16_t tp_id);
-void tx_vlan_set(portid_t port_id, uint16_t vlan_id);
-void tx_qinq_set(portid_t port_id, uint16_t vlan_id, uint16_t vlan_id_outer);
-void tx_vlan_reset(portid_t port_id);
-void tx_vlan_pvid_set(portid_t port_id, uint16_t vlan_id, int on);
-
-void set_qmap(portid_t port_id, uint8_t is_rx, uint16_t queue_id, uint8_t map_value);
-
 void set_xstats_hide_zero(uint8_t on_off);
 
 void set_record_core_cycles(uint8_t on_off);
@@ -854,9 +837,6 @@ int all_ports_stopped(void);
 int port_is_stopped(portid_t port_id);
 int port_is_started(portid_t port_id);
 void pmd_test_exit(void);
-#if defined(RTE_NET_I40E) || defined(RTE_NET_IXGBE)
-void fdir_get_infos(portid_t port_id);
-#endif
 
 
 int
