@@ -3722,7 +3722,7 @@ static void
 force_quit(void)
 {
 	pmd_test_exit();
-	prompt_exit();
+	//prompt_exit();
 }
 
 static void
@@ -3922,19 +3922,19 @@ main(int argc, char** argv)
 	}
 #endif
 
-#ifdef RTE_LIB_CMDLINE
-	if (strlen(cmdline_filename) != 0)
-		cmdline_read_from_file(cmdline_filename);
-
-	if (interactive == 1) {
-		if (auto_start) {
-			printf("Start automatic packet forwarding\n");
-			start_packet_forwarding(0);
-		}
-		prompt();
-		pmd_test_exit();
-	} else
-#endif
+// #ifdef RTE_LIB_CMDLINE
+// 	if (strlen(cmdline_filename) != 0)
+// 		cmdline_read_from_file(cmdline_filename);
+//
+// 	if (interactive == 1) {
+// 		if (auto_start) {
+// 			printf("Start automatic packet forwarding\n");
+// 			start_packet_forwarding(0);
+// 		}
+// 		prompt();
+// 		pmd_test_exit();
+// 	} else
+// #endif
 	{
 		char c;
 		int rc;
