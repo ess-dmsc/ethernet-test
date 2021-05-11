@@ -554,52 +554,6 @@ struct nvgre_encap_conf {
 extern struct nvgre_encap_conf nvgre_encap_conf;
 
 
-/* MPLSoGRE encap parameters. */
-struct mplsogre_encap_conf {
-	uint32_t select_ipv4:1;
-	uint32_t select_vlan:1;
-	uint8_t label[3];
-	rte_be32_t ipv4_src;
-	rte_be32_t ipv4_dst;
-	uint8_t ipv6_src[16];
-	uint8_t ipv6_dst[16];
-	rte_be16_t vlan_tci;
-	uint8_t eth_src[RTE_ETHER_ADDR_LEN];
-	uint8_t eth_dst[RTE_ETHER_ADDR_LEN];
-};
-extern struct mplsogre_encap_conf mplsogre_encap_conf;
-
-/* MPLSoGRE decap parameters. */
-struct mplsogre_decap_conf {
-	uint32_t select_ipv4:1;
-	uint32_t select_vlan:1;
-};
-extern struct mplsogre_decap_conf mplsogre_decap_conf;
-
-/* MPLSoUDP encap parameters. */
-struct mplsoudp_encap_conf {
-	uint32_t select_ipv4:1;
-	uint32_t select_vlan:1;
-	uint8_t label[3];
-	rte_be16_t udp_src;
-	rte_be16_t udp_dst;
-	rte_be32_t ipv4_src;
-	rte_be32_t ipv4_dst;
-	uint8_t ipv6_src[16];
-	uint8_t ipv6_dst[16];
-	rte_be16_t vlan_tci;
-	uint8_t eth_src[RTE_ETHER_ADDR_LEN];
-	uint8_t eth_dst[RTE_ETHER_ADDR_LEN];
-};
-extern struct mplsoudp_encap_conf mplsoudp_encap_conf;
-
-/* MPLSoUDP decap parameters. */
-struct mplsoudp_decap_conf {
-	uint32_t select_ipv4:1;
-	uint32_t select_vlan:1;
-};
-extern struct mplsoudp_decap_conf mplsoudp_decap_conf;
-
 extern enum rte_eth_rx_mq_mode rx_mq_mode;
 
 
@@ -755,7 +709,6 @@ void update_fwd_ports(portid_t new_pid);
 void set_fwd_eth_peer(portid_t port_id, char *peer_addr);
 
 void port_mtu_set(portid_t port_id, uint16_t mtu);
-void port_reg_bit_display(portid_t port_id, uint32_t reg_off, uint8_t bit_pos);
 const char *port_flow_tunnel_type(struct rte_flow_tunnel *tunnel);
 struct port_flow_tunnel *
 port_flow_locate_tunnel(uint16_t port_id, struct rte_flow_tunnel *tun);
@@ -769,8 +722,6 @@ void set_fwd_ports_mask(uint64_t portmask);
 void set_fwd_ports_number(uint16_t nb_pt);
 int port_is_forwarding(portid_t port_id);
 
-void set_verbose_level(uint16_t vb_level);
-void set_nb_pkt_per_burst(uint16_t pkt_burst);
 void start_packet_forwarding(int with_tx_first);
 void fwd_stats_display(void);
 void fwd_stats_reset(void);
@@ -805,7 +756,6 @@ rx_queue_setup(uint16_t port_id, uint16_t rx_queue_id,
 int eth_dev_info_get_print_err(uint16_t port_id,
 			struct rte_eth_dev_info *dev_info);
 void eth_set_promisc_mode(uint16_t port_id, int enable);
-void eth_set_allmulticast_mode(uint16_t port, int enable);
 int eth_link_get_nowait_print_err(uint16_t port_id, struct rte_eth_link *link);
 int eth_macaddr_get_print_err(uint16_t port_id,
 			struct rte_ether_addr *mac_addr);
@@ -826,16 +776,6 @@ int check_nb_rxd(queueid_t rxd);
 int check_nb_txd(queueid_t txd);
 queueid_t get_allowed_max_nb_hairpinq(portid_t *pid);
 int check_nb_hairpinq(queueid_t hairpinq);
-
-uint16_t tx_pkt_set_md(uint16_t port_id, __rte_unused uint16_t queue,
-		       struct rte_mbuf *pkts[], uint16_t nb_pkts,
-		       __rte_unused void *user_param);
-
-uint16_t tx_pkt_set_dynf(uint16_t port_id, __rte_unused uint16_t queue,
-			 struct rte_mbuf *pkts[], uint16_t nb_pkts,
-			 __rte_unused void *user_param);
-void add_tx_dynf_callback(portid_t portid);
-void remove_tx_dynf_callback(portid_t portid);
 int update_jumbo_frame_offload(portid_t portid);
 
 /*

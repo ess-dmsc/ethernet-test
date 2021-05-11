@@ -381,51 +381,6 @@ void print_valid_ports(void)
 	printf(" ]\n");
 }
 
-static int
-port_reg_off_is_invalid(portid_t port_id, uint32_t reg_off)
-{
-	const struct rte_pci_device *pci_dev;
-	const struct rte_bus *bus;
-	uint64_t pci_len;
-
-	if (reg_off & 0x3) {
-		printf("Port register offset 0x%X not aligned on a 4-byte "
-		       "boundary\n",
-		       (unsigned)reg_off);
-		return 1;
-	}
-
-	if (!ports[port_id].dev_info.device) {
-		printf("Invalid device\n");
-		return 0;
-	}
-
-	bus = rte_bus_find_by_device(ports[port_id].dev_info.device);
-	if (bus && !strcmp(bus->name, "pci")) {
-		pci_dev = RTE_DEV_TO_PCI(ports[port_id].dev_info.device);
-	} else {
-		printf("Not a PCI device\n");
-		return 1;
-	}
-
-	pci_len = pci_dev->mem_resource[0].len;
-	if (reg_off >= pci_len) {
-		printf("Port %d: register offset %u (0x%X) out of port PCI "
-		       "resource (length=%"PRIu64")\n",
-		       port_id, (unsigned)reg_off, (unsigned)reg_off,  pci_len);
-		return 1;
-	}
-	return 0;
-}
-
-static int
-reg_bit_pos_is_invalid(uint8_t bit_pos)
-{
-	if (bit_pos <= 31)
-		return 0;
-	printf("Invalid bit position %d (must be <= 31)\n", bit_pos);
-	return 1;
-}
 
 #define display_port_and_reg_off(port_id, reg_off) \
 	printf("port %d PCI register at offset 0x%X: ", (port_id), (reg_off))
@@ -435,23 +390,6 @@ display_port_reg_value(portid_t port_id, uint32_t reg_off, uint32_t reg_v)
 {
 	display_port_and_reg_off(port_id, (unsigned)reg_off);
 	printf("0x%08X (%u)\n", (unsigned)reg_v, (unsigned)reg_v);
-}
-
-void
-port_reg_bit_display(portid_t port_id, uint32_t reg_off, uint8_t bit_x)
-{
-	uint32_t reg_v;
-
-
-	if (port_id_is_invalid(port_id, ENABLED_WARN))
-		return;
-	if (port_reg_off_is_invalid(port_id, reg_off))
-		return;
-	if (reg_bit_pos_is_invalid(bit_x))
-		return;
-	reg_v = port_id_pci_reg_read(port_id, reg_off);
-	display_port_and_reg_off(port_id, (unsigned)reg_off);
-	printf("bit %d=%d\n", bit_x, (int) ((reg_v & (1 << bit_x)) >> bit_x));
 }
 
 void
@@ -1167,27 +1105,4 @@ port_is_forwarding(portid_t port_id)
 	}
 
 	return 0;
-}
-
-void
-set_nb_pkt_per_burst(uint16_t nb)
-{
-	if (nb > MAX_PKT_BURST) {
-		printf("nb pkt per burst: %u > %u (maximum packet per burst) "
-		       " ignored\n",
-		       (unsigned int) nb, (unsigned int) MAX_PKT_BURST);
-		return;
-	}
-	nb_pkt_per_burst = nb;
-	printf("Number of packets per burst set to %u\n",
-	       (unsigned int) nb_pkt_per_burst);
-}
-
-
-void
-set_verbose_level(uint16_t vb_level)
-{
-	printf("Change verbose level from %u to %u\n",
-	       (unsigned int) verbose_level, (unsigned int) vb_level);
-	verbose_level = vb_level;
 }
