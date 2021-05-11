@@ -1,7 +1,7 @@
 
 
 
-
+///
 struct ess_hdr {
   uint8_t Padding;
   uint8_t Version;
@@ -17,10 +17,14 @@ struct ess_hdr {
 } __attribute__((packed));
 
 
+///
 int ecdc_eth_counters(struct rte_mbuf  * pkt, struct fwd_stream *fs);
 
+///
 int ecdc_ip_counters(struct rte_mbuf  * pkt, struct fwd_stream *fs);
 
+///
 int ecdc_essdaq_counters(struct rte_mbuf  * pkt, struct fwd_stream *fs);
 
+///
 void ecdc_rx_packet(struct rte_mbuf  * pkt, struct fwd_stream *fs);
