@@ -742,12 +742,8 @@ void prompt(void);
 void prompt_exit(void);
 void nic_stats_display(portid_t port_id);
 void nic_stats_clear(portid_t port_id);
-void nic_xstats_display(portid_t port_id);
-void nic_xstats_clear(portid_t port_id);
 void device_infos_display(const char *identifier);
 void port_summary_header_display(void);
-void rx_queue_infos_display(portid_t port_idi, uint16_t queue_id);
-void tx_queue_infos_display(portid_t port_idi, uint16_t queue_id);
 void pkt_fwd_config_display(struct fwd_config *cfg);
 void rxtx_config_display(void);
 void fwd_config_setup(void);
@@ -760,18 +756,9 @@ void set_fwd_eth_peer(portid_t port_id, char *peer_addr);
 
 void port_mtu_set(portid_t port_id, uint16_t mtu);
 void port_reg_bit_display(portid_t port_id, uint32_t reg_off, uint8_t bit_pos);
-void port_reg_bit_set(portid_t port_id, uint32_t reg_off, uint8_t bit_pos,
-		      uint8_t bit_v);
-void port_reg_bit_field_display(portid_t port_id, uint32_t reg_off,
-				uint8_t bit1_pos, uint8_t bit2_pos);
-void port_reg_bit_field_set(portid_t port_id, uint32_t reg_off,
-			    uint8_t bit1_pos, uint8_t bit2_pos, uint32_t value);
-void port_reg_display(portid_t port_id, uint32_t reg_off);
-void port_reg_set(portid_t port_id, uint32_t reg_off, uint32_t value);
 const char *port_flow_tunnel_type(struct rte_flow_tunnel *tunnel);
 struct port_flow_tunnel *
 port_flow_locate_tunnel(uint16_t port_id, struct rte_flow_tunnel *tun);
-void port_flow_tunnel_list(portid_t port_id);
 
 int set_fwd_lcores_list(unsigned int *lcorelist, unsigned int nb_lc);
 int set_fwd_lcores_mask(uint64_t lcoremask);
@@ -783,14 +770,6 @@ void set_fwd_ports_number(uint16_t nb_pt);
 int port_is_forwarding(portid_t port_id);
 
 void set_verbose_level(uint16_t vb_level);
-void set_rx_pkt_segments(unsigned int *seg_lengths, unsigned int nb_segs);
-void show_rx_pkt_segments(void);
-void set_rx_pkt_offsets(unsigned int *seg_offsets, unsigned int nb_offs);
-void show_rx_pkt_offsets(void);
-void show_tx_pkt_segments(void);
-void set_tx_pkt_split(const char *name);
-int parse_fec_mode(const char *name, enum rte_eth_fec_mode *mode);
-void show_fec_capability(uint32_t num, struct rte_eth_fec_capa *speed_fec_capa);
 void set_nb_pkt_per_burst(uint16_t pkt_burst);
 void start_packet_forwarding(int with_tx_first);
 void fwd_stats_display(void);
@@ -799,8 +778,6 @@ void stop_packet_forwarding(void);
 void dev_set_link_up(portid_t pid);
 void dev_set_link_down(portid_t pid);
 void init_port_config(void);
-void set_port_slave_flag(portid_t slave_pid);
-void clear_port_slave_flag(portid_t slave_pid);
 uint8_t port_is_bonding_slave(portid_t slave_pid);
 
 // int init_port_dcb_config(portid_t pid, enum dcb_mode_enable dcb_mode,
@@ -824,8 +801,6 @@ rx_queue_setup(uint16_t port_id, uint16_t rx_queue_id,
 	       uint16_t nb_rx_desc, unsigned int socket_id,
 	       struct rte_eth_rxconf *rx_conf, struct rte_mempool *mp);
 
-int rx_queue_id_is_invalid(queueid_t rxq_id);
-int tx_queue_id_is_invalid(queueid_t txq_id);
 
 int eth_dev_info_get_print_err(uint16_t port_id,
 			struct rte_eth_dev_info *dev_info);
@@ -852,24 +827,9 @@ int check_nb_txd(queueid_t txd);
 queueid_t get_allowed_max_nb_hairpinq(portid_t *pid);
 int check_nb_hairpinq(queueid_t hairpinq);
 
-uint16_t dump_rx_pkts(uint16_t port_id, uint16_t queue, struct rte_mbuf *pkts[],
-		      uint16_t nb_pkts, __rte_unused uint16_t max_pkts,
-		      __rte_unused void *user_param);
-
-uint16_t dump_tx_pkts(uint16_t port_id, uint16_t queue, struct rte_mbuf *pkts[],
-		      uint16_t nb_pkts, __rte_unused void *user_param);
-
-void add_rx_dump_callbacks(portid_t portid);
-void remove_rx_dump_callbacks(portid_t portid);
-void add_tx_dump_callbacks(portid_t portid);
-void remove_tx_dump_callbacks(portid_t portid);
-void configure_rxtx_dump_callbacks(uint16_t verbose);
-
 uint16_t tx_pkt_set_md(uint16_t port_id, __rte_unused uint16_t queue,
 		       struct rte_mbuf *pkts[], uint16_t nb_pkts,
 		       __rte_unused void *user_param);
-void add_tx_md_callback(portid_t portid);
-void remove_tx_md_callback(portid_t portid);
 
 uint16_t tx_pkt_set_dynf(uint16_t port_id, __rte_unused uint16_t queue,
 			 struct rte_mbuf *pkts[], uint16_t nb_pkts,

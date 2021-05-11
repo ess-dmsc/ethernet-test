@@ -2438,7 +2438,6 @@ start_port(portid_t pid)
 		if (port->need_reconfig > 0) {
 			port->need_reconfig = 0;
 
-			configure_rxtx_dump_callbacks(0);
 			printf("Configuring Port %d (socket %u)\n", pi,
 					port->socket_id);
 			if (nb_hairpinq > 0 &&
@@ -2549,7 +2548,7 @@ start_port(portid_t pid)
 			if (setup_hairpin_queues(pi, p_pi, cnt_pi) != 0)
 				return -1;
 		}
-		configure_rxtx_dump_callbacks(verbose_level);
+
 		if (clear_ptypes) {
 			diag = rte_eth_dev_set_ptypes(pi, RTE_PTYPE_UNKNOWN,
 					NULL, 0);
@@ -3435,22 +3434,6 @@ init_port_config(void)
 		     RTE_ETH_DEV_INTR_RMV))
 			port->dev_conf.intr_conf.rmv = 1;
 	}
-}
-
-void set_port_slave_flag(portid_t slave_pid)
-{
-	struct rte_port *port;
-
-	port = &ports[slave_pid];
-	port->slave_flag = 1;
-}
-
-void clear_port_slave_flag(portid_t slave_pid)
-{
-	struct rte_port *port;
-
-	port = &ports[slave_pid];
-	port->slave_flag = 0;
 }
 
 uint8_t port_is_bonding_slave(portid_t slave_pid)
