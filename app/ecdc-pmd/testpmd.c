@@ -49,9 +49,6 @@
 #ifdef RTE_NET_IXGBE
 #include <rte_pmd_ixgbe.h>
 #endif
-#ifdef RTE_LIB_PDUMP
-#include <rte_pdump.h>
-#endif
 #include <rte_flow.h>
 #include <rte_metrics.h>
 #ifdef RTE_LIB_BITRATESTATS
@@ -83,10 +80,6 @@
 uint16_t verbose_level = 0; /**< Silent by default. */
 int testpmd_logtype; /**< Log type for testpmd logs */
 
-/* use main core for command line ? */
-uint8_t interactive = 0;
-uint8_t auto_start = 0;
-uint8_t tx_first;
 char cmdline_filename[PATH_MAX] = {0};
 
 /*
@@ -165,14 +158,6 @@ portid_t fwd_ports_ids[RTE_MAX_ETHPORTS];      /**< Port ids configuration. */
 
 struct fwd_stream **fwd_streams; /**< For each RX queue of each port. */
 streamid_t nb_fwd_streams;       /**< Is equal to (nb_ports * nb_rxq). */
-
-/*
- * Forwarding engines.
- */
-struct fwd_engine * fwd_engines[] = {
-	&rx_only_engine,
-	NULL,
-};
 
 struct rte_mempool *mempools[RTE_MAX_NUMA_NODES * MAX_SEGS_BUFFER_SPLIT];
 uint16_t mempool_flags;
@@ -464,11 +449,6 @@ struct rte_fdir_conf fdir_conf = {
 volatile int test_done = 1; /* stop packet forwarding when set to 1. */
 
 /*
- * Display zero values by default for xstats
- */
-uint8_t xstats_hide_zero;
-
-/*
  * Measure of CPU cycles disabled by default
  */
 uint8_t record_core_cycles;
@@ -487,9 +467,6 @@ struct rte_stats_bitrates *bitrate_data;
 lcoreid_t bitrate_lcore_id;
 uint8_t bitrate_enabled;
 #endif
-
-struct gro_status gro_ports[RTE_MAX_ETHPORTS];
-uint8_t gro_flush_cycles = GRO_DEFAULT_FLUSH_CYCLES;
 
 /*
  * hexadecimal bitmask of RX mq mode can be enabled.
@@ -516,9 +493,6 @@ static void dev_event_callback(const char *device_name,
  * If yes, return positive value. If not, return zero.
  */
 static int all_ports_started(void);
-
-struct gso_status gso_ports[RTE_MAX_ETHPORTS];
-uint16_t gso_max_segment_size = RTE_ETHER_MAX_LEN - RTE_ETHER_CRC_LEN;
 
 /* Holds the registered mbuf dynamic flags names. */
 char dynf_names[64][RTE_MBUF_DYN_NAMESIZE];
@@ -2095,7 +2069,7 @@ launch_packet_forwarding(lcore_function_t *pkt_fwd_on_lcore)
 	}
 	for (i = 0; i < cur_fwd_config.nb_fwd_lcores; i++) {
 		lc_id = fwd_lcores_cpuids[i];
-		if ((interactive == 0) || (lc_id != rte_lcore_id())) {
+		if (lc_id != rte_lcore_id()) {
 			fwd_lcores[i]->stopped = 0;
 			printf("mjcdebug: rte_eal_remote_launch - core %u / cpu %u\n", lc_id, i);
 			diag = rte_eal_remote_launch(pkt_fwd_on_lcore,
@@ -2111,7 +2085,7 @@ launch_packet_forwarding(lcore_function_t *pkt_fwd_on_lcore)
  * Launch packet forwarding configuration.
  */
 void
-start_packet_forwarding(int __attribute__((unused)) with_tx_first)
+start_packet_forwarding(void)
 {
 	printf("mjcdebug: %s()\n", __FUNCTION__);
 
@@ -3135,7 +3109,7 @@ rmv_port_callback(void *arg)
 	detach_device(dev); /* might be already removed or have more ports */
 
 	if (need_to_start)
-		start_packet_forwarding(0);
+		start_packet_forwarding();
 }
 
 /* This function is used by the interrupt thread */
@@ -3507,10 +3481,6 @@ signal_handler(int signum)
 	if (signum == SIGINT || signum == SIGTERM) {
 		printf("\nSignal %d received, preparing to exit...\n",
 				signum);
-#ifdef RTE_LIB_PDUMP
-		/* uninitialize packet capture framework */
-		rte_pdump_uninit();
-#endif
 #ifdef RTE_LIB_LATENCYSTATS
 		if (latencystats_enabled != 0)
 			rte_latencystats_uninit();
@@ -3553,11 +3523,6 @@ main(int argc, char** argv)
 	if (ret != 0)
 		rte_exit(EXIT_FAILURE, "Cannot register for ethdev events");
 
-#ifdef RTE_LIB_PDUMP
-	/* initialize packet capture framework */
-	rte_pdump_init();
-#endif
-
 	count = 0;
 	RTE_ETH_FOREACH_DEV(port_id) {
 		ports_ids[count] = port_id;
@@ -3598,16 +3563,6 @@ main(int argc, char** argv)
 	if (do_mlockall && mlockall(MCL_CURRENT | MCL_FUTURE)) {
 		TESTPMD_LOG(NOTICE, "mlockall() failed with error \"%s\"\n",
 			strerror(errno));
-	}
-
-	if (tx_first && interactive)
-		rte_exit(EXIT_FAILURE, "--tx-first cannot be used on "
-				"interactive mode.\n");
-
-	if (tx_first && lsc_interrupt) {
-		printf("Warning: lsc_interrupt needs to be off when "
-				" using tx_first. Disabling.\n");
-		lsc_interrupt = 0;
 	}
 
 	if (!nb_rxq && !nb_txq)
@@ -3686,7 +3641,7 @@ main(int argc, char** argv)
 		f_quit = 0;
 
 		printf("No commandline core given, start packet forwarding\n");
-		start_packet_forwarding(tx_first);
+		start_packet_forwarding();
 		if (stats_period != 0) {
 			uint64_t prev_time = 0, cur_time, diff_time = 0;
 			uint64_t timer_period;

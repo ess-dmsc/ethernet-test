@@ -51,15 +51,7 @@ usage(char* progname)
 {
 	printf("\nUsage: %s [EAL options] -- [testpmd options]\n\n",
 	       progname);
-#ifdef RTE_LIB_CMDLINE
-	printf("  --interactive: run in interactive mode.\n");
-	printf("  --cmdline-file: execute cli commands before startup.\n");
-#endif
-	printf("  --auto-start: start forwarding on init "
-	       "[always when non-interactive].\n");
 	printf("  --help: display this message and quit.\n");
-	printf("  --tx-first: start forwarding sending a burst first "
-	       "(only if interactive is disabled).\n");
 	printf("  --stats-period=PERIOD: statistics will be shown "
 	       "every PERIOD seconds (only if interactive is disabled).\n");
 	printf("  --nb-cores=N: set the number of forwarding cores "
@@ -521,13 +513,11 @@ launch_args_parse(int argc, char** argv)
 	static struct option lgopts[] = {
 		{ "help",			0, 0, 0 },
 #ifdef RTE_LIB_CMDLINE
-		{ "interactive",		0, 0, 0 },
 		{ "cmdline-file",		1, 0, 0 },
 		{ "auto-start",			0, 0, 0 },
 		{ "eth-peers-configfile",	1, 0, 0 },
 		{ "eth-peer",			1, 0, 0 },
 #endif
-		{ "tx-first",			0, 0, 0 },
 		{ "stats-period",		1, 0, 0 },
 		{ "nb-cores",			1, 0, 0 },
 		{ "nb-ports",			1, 0, 0 },
@@ -636,16 +626,6 @@ launch_args_parse(int argc, char** argv)
 	while ((opt = getopt_long(argc, argvopt, SHORTOPTS "ah",
 				 lgopts, &opt_idx)) != EOF) {
 		switch (opt) {
-#ifdef RTE_LIB_CMDLINE
-		case 'i':
-			printf("Interactive-mode selected\n");
-			interactive = 1;
-			break;
-#endif
-		case 'a':
-			printf("Auto-start selected\n");
-			auto_start = 1;
-			break;
 
 		case 0: /*long options */
 			if (!strcmp(lgopts[opt_idx].name, "help")) {
@@ -653,24 +633,11 @@ launch_args_parse(int argc, char** argv)
 				exit(EXIT_SUCCESS);
 			}
 #ifdef RTE_LIB_CMDLINE
-			if (!strcmp(lgopts[opt_idx].name, "interactive")) {
-				printf("Interactive-mode selected\n");
-				interactive = 1;
-			}
 			if (!strcmp(lgopts[opt_idx].name, "cmdline-file")) {
 				printf("CLI commands to be read from %s\n",
 				       optarg);
 				strlcpy(cmdline_filename, optarg,
 					sizeof(cmdline_filename));
-			}
-			if (!strcmp(lgopts[opt_idx].name, "auto-start")) {
-				printf("Auto-start selected\n");
-				auto_start = 1;
-			}
-			if (!strcmp(lgopts[opt_idx].name, "tx-first")) {
-				printf("Ports to start sending a burst of "
-						"packets first\n");
-				tx_first = 1;
 			}
 			if (!strcmp(lgopts[opt_idx].name, "stats-period")) {
 				char *end = NULL;
@@ -820,24 +787,6 @@ launch_args_parse(int argc, char** argv)
 						"Invalid socket id");
 				}
 			}
-			// if (!strcmp(lgopts[opt_idx].name, "mbuf-size")) {
-			// 	unsigned int mb_sz[MAX_SEGS_BUFFER_SPLIT];
-			// 	unsigned int nb_segs, i;
-			//
-			// 	nb_segs = parse_item_list(optarg, "mbuf-size",
-			// 		MAX_SEGS_BUFFER_SPLIT, mb_sz, 0);
-			// 	if (nb_segs <= 0)
-			// 		rte_exit(EXIT_FAILURE,
-			// 			 "bad mbuf-size\n");
-			// 	for (i = 0; i < nb_segs; i++) {
-			// 		if (mb_sz[i] <= 0 || mb_sz[i] > 0xFFFF)
-			// 			rte_exit(EXIT_FAILURE,
-			// 				 "mbuf-size should be "
-			// 				 "> 0 and < 65536\n");
-			// 		mbuf_data_size[i] = (uint16_t) mb_sz[i];
-			// 	}
-			// 	mbuf_data_size_n = nb_segs;
-			// }
 			if (!strcmp(lgopts[opt_idx].name, "total-num-mbufs")) {
 				n = atoi(optarg);
 				if (n > 1024)

@@ -54,8 +54,6 @@
 
 #include "testpmd.h"
 
-#define ETHDEV_FWVERS_LEN 32
-
 #ifdef CLOCK_MONOTONIC_RAW /* Defined in glibc bits/time.h */
 #define CLOCK_TYPE_ID CLOCK_MONOTONIC_RAW
 #else
@@ -63,64 +61,6 @@
 #endif
 
 #define NS_PER_SEC 1E9
-
-const struct rss_type_info rss_type_table[] = {
-	{ "all", ETH_RSS_ETH | ETH_RSS_VLAN | ETH_RSS_IP | ETH_RSS_TCP |
-		ETH_RSS_UDP | ETH_RSS_SCTP | ETH_RSS_L2_PAYLOAD |
-		ETH_RSS_L2TPV3 | ETH_RSS_ESP | ETH_RSS_AH | ETH_RSS_PFCP |
-		ETH_RSS_GTPU | ETH_RSS_ECPRI | ETH_RSS_MPLS},
-	{ "none", 0 },
-	{ "eth", ETH_RSS_ETH },
-	{ "l2-src-only", ETH_RSS_L2_SRC_ONLY },
-	{ "l2-dst-only", ETH_RSS_L2_DST_ONLY },
-	{ "vlan", ETH_RSS_VLAN },
-	{ "s-vlan", ETH_RSS_S_VLAN },
-	{ "c-vlan", ETH_RSS_C_VLAN },
-	{ "ipv4", ETH_RSS_IPV4 },
-	{ "ipv4-frag", ETH_RSS_FRAG_IPV4 },
-	{ "ipv4-tcp", ETH_RSS_NONFRAG_IPV4_TCP },
-	{ "ipv4-udp", ETH_RSS_NONFRAG_IPV4_UDP },
-	{ "ipv4-sctp", ETH_RSS_NONFRAG_IPV4_SCTP },
-	{ "ipv4-other", ETH_RSS_NONFRAG_IPV4_OTHER },
-	{ "ipv6", ETH_RSS_IPV6 },
-	{ "ipv6-frag", ETH_RSS_FRAG_IPV6 },
-	{ "ipv6-tcp", ETH_RSS_NONFRAG_IPV6_TCP },
-	{ "ipv6-udp", ETH_RSS_NONFRAG_IPV6_UDP },
-	{ "ipv6-sctp", ETH_RSS_NONFRAG_IPV6_SCTP },
-	{ "ipv6-other", ETH_RSS_NONFRAG_IPV6_OTHER },
-	{ "l2-payload", ETH_RSS_L2_PAYLOAD },
-	{ "ipv6-ex", ETH_RSS_IPV6_EX },
-	{ "ipv6-tcp-ex", ETH_RSS_IPV6_TCP_EX },
-	{ "ipv6-udp-ex", ETH_RSS_IPV6_UDP_EX },
-	{ "port", ETH_RSS_PORT },
-	{ "vxlan", ETH_RSS_VXLAN },
-	{ "geneve", ETH_RSS_GENEVE },
-	{ "nvgre", ETH_RSS_NVGRE },
-	{ "ip", ETH_RSS_IP },
-	{ "udp", ETH_RSS_UDP },
-	{ "tcp", ETH_RSS_TCP },
-	{ "sctp", ETH_RSS_SCTP },
-	{ "tunnel", ETH_RSS_TUNNEL },
-	{ "l3-pre32", RTE_ETH_RSS_L3_PRE32 },
-	{ "l3-pre40", RTE_ETH_RSS_L3_PRE40 },
-	{ "l3-pre48", RTE_ETH_RSS_L3_PRE48 },
-	{ "l3-pre56", RTE_ETH_RSS_L3_PRE56 },
-	{ "l3-pre64", RTE_ETH_RSS_L3_PRE64 },
-	{ "l3-pre96", RTE_ETH_RSS_L3_PRE96 },
-	{ "l3-src-only", ETH_RSS_L3_SRC_ONLY },
-	{ "l3-dst-only", ETH_RSS_L3_DST_ONLY },
-	{ "l4-src-only", ETH_RSS_L4_SRC_ONLY },
-	{ "l4-dst-only", ETH_RSS_L4_DST_ONLY },
-	{ "esp", ETH_RSS_ESP },
-	{ "ah", ETH_RSS_AH },
-	{ "l2tpv3", ETH_RSS_L2TPV3 },
-	{ "pfcp", ETH_RSS_PFCP },
-	{ "pppoe", ETH_RSS_PPPOE },
-	{ "gtpu", ETH_RSS_GTPU },
-	{ "ecpri", ETH_RSS_ECPRI },
-	{ "mpls", ETH_RSS_MPLS },
-	{ NULL, 0 },
-};
 
 
 static void
@@ -190,165 +130,6 @@ nic_stats_display(portid_t port_id)
 	printf("  Rx-pps: %12"PRIu64"          Rx-bps: %12"PRIu64"\n  Tx-pps: %12"
 	       PRIu64"          Tx-bps: %12"PRIu64"\n", mpps_rx, mbps_rx * 8,
 	       mpps_tx, mbps_tx * 8);
-	// printf("  %s############################%s\n",
-	//        nic_stats_border, nic_stats_border);
-}
-
-void
-nic_stats_clear(portid_t port_id)
-{
-	int ret;
-
-	if (port_id_is_invalid(port_id, ENABLED_WARN)) {
-		print_valid_ports();
-		return;
-	}
-
-	ret = rte_eth_stats_reset(port_id);
-	if (ret != 0) {
-		printf("%s: Error: failed to reset stats (port %u): %s",
-		       __func__, port_id, strerror(-ret));
-		return;
-	}
-
-	ret = rte_eth_stats_get(port_id, &ports[port_id].stats);
-	if (ret != 0) {
-		if (ret < 0)
-			ret = -ret;
-		printf("%s: Error: failed to get stats (port %u): %s",
-		       __func__, port_id, strerror(ret));
-		return;
-	}
-	printf("\n  NIC statistics for port %d cleared\n", port_id);
-}
-
-
-static int bus_match_all(const struct rte_bus *bus, const void *data)
-{
-	RTE_SET_USED(bus);
-	RTE_SET_USED(data);
-	return 0;
-}
-
-static void
-device_infos_display_speeds(uint32_t speed_capa)
-{
-	printf("\n\tDevice speed capability:");
-	if (speed_capa == ETH_LINK_SPEED_AUTONEG)
-		printf(" Autonegotiate (all speeds)");
-	if (speed_capa & ETH_LINK_SPEED_FIXED)
-		printf(" Disable autonegotiate (fixed speed)  ");
-	if (speed_capa & ETH_LINK_SPEED_10M_HD)
-		printf(" 10 Mbps half-duplex  ");
-	if (speed_capa & ETH_LINK_SPEED_10M)
-		printf(" 10 Mbps full-duplex  ");
-	if (speed_capa & ETH_LINK_SPEED_100M_HD)
-		printf(" 100 Mbps half-duplex  ");
-	if (speed_capa & ETH_LINK_SPEED_100M)
-		printf(" 100 Mbps full-duplex  ");
-	if (speed_capa & ETH_LINK_SPEED_1G)
-		printf(" 1 Gbps  ");
-	if (speed_capa & ETH_LINK_SPEED_2_5G)
-		printf(" 2.5 Gbps  ");
-	if (speed_capa & ETH_LINK_SPEED_5G)
-		printf(" 5 Gbps  ");
-	if (speed_capa & ETH_LINK_SPEED_10G)
-		printf(" 10 Gbps  ");
-	if (speed_capa & ETH_LINK_SPEED_20G)
-		printf(" 20 Gbps  ");
-	if (speed_capa & ETH_LINK_SPEED_25G)
-		printf(" 25 Gbps  ");
-	if (speed_capa & ETH_LINK_SPEED_40G)
-		printf(" 40 Gbps  ");
-	if (speed_capa & ETH_LINK_SPEED_50G)
-		printf(" 50 Gbps  ");
-	if (speed_capa & ETH_LINK_SPEED_56G)
-		printf(" 56 Gbps  ");
-	if (speed_capa & ETH_LINK_SPEED_100G)
-		printf(" 100 Gbps  ");
-	if (speed_capa & ETH_LINK_SPEED_200G)
-		printf(" 200 Gbps  ");
-}
-
-void
-device_infos_display(const char *identifier)
-{
-	static const char *info_border = "*********************";
-	struct rte_bus *start = NULL, *next;
-	struct rte_dev_iterator dev_iter;
-	char name[RTE_ETH_NAME_MAX_LEN];
-	struct rte_ether_addr mac_addr;
-	struct rte_device *dev;
-	struct rte_devargs da;
-	portid_t port_id;
-	struct rte_eth_dev_info dev_info;
-	char devstr[128];
-
-	memset(&da, 0, sizeof(da));
-	if (!identifier)
-		goto skip_parse;
-
-	if (rte_devargs_parsef(&da, "%s", identifier)) {
-		printf("cannot parse identifier\n");
-		return;
-	}
-
-skip_parse:
-	while ((next = rte_bus_find(start, bus_match_all, NULL)) != NULL) {
-
-		start = next;
-		if (identifier && da.bus != next)
-			continue;
-
-		/* Skip buses that don't have iterate method */
-		if (!next->dev_iterate)
-			continue;
-
-		snprintf(devstr, sizeof(devstr), "bus=%s", next->name);
-		RTE_DEV_FOREACH(dev, devstr, &dev_iter) {
-
-			if (!dev->driver)
-				continue;
-			/* Check for matching device if identifier is present */
-			if (identifier &&
-			    strncmp(da.name, dev->name, strlen(dev->name)))
-				continue;
-			printf("\n%s Infos for device %s %s\n",
-			       info_border, dev->name, info_border);
-			printf("Bus name: %s", dev->bus->name);
-			printf("\nDriver name: %s", dev->driver->name);
-			printf("\nDevargs: %s",
-			       dev->devargs ? dev->devargs->args : "");
-			printf("\nConnect to socket: %d", dev->numa_node);
-			printf("\n");
-
-			/* List ports with matching device name */
-			RTE_ETH_FOREACH_DEV_OF(port_id, dev) {
-				printf("\n\tPort id: %-2d", port_id);
-				if (eth_macaddr_get_print_err(port_id,
-							      &mac_addr) == 0)
-					print_ethaddr("\n\tMAC address: ",
-						      &mac_addr);
-				rte_eth_dev_get_name_by_port(port_id, name);
-				printf("\n\tDevice name: %s", name);
-				if (rte_eth_dev_info_get(port_id, &dev_info) == 0)
-					device_infos_display_speeds(dev_info.speed_capa);
-				printf("\n");
-			}
-		}
-	};
-	rte_devargs_reset(&da);
-}
-
-void
-port_summary_header_display(void)
-{
-	uint16_t port_number;
-
-	port_number = rte_eth_dev_count_avail();
-	printf("Number of available ports: %i\n", port_number);
-	printf("%-4s %-17s %-12s %-14s %-8s %s\n", "Port", "MAC Address", "Name",
-			"Driver", "Status", "Link");
 }
 
 
@@ -381,118 +162,6 @@ void print_valid_ports(void)
 	printf(" ]\n");
 }
 
-
-#define display_port_and_reg_off(port_id, reg_off) \
-	printf("port %d PCI register at offset 0x%X: ", (port_id), (reg_off))
-
-static inline void
-display_port_reg_value(portid_t port_id, uint32_t reg_off, uint32_t reg_v)
-{
-	display_port_and_reg_off(port_id, (unsigned)reg_off);
-	printf("0x%08X (%u)\n", (unsigned)reg_v, (unsigned)reg_v);
-}
-
-void
-port_mtu_set(portid_t port_id, uint16_t mtu)
-{
-	int diag;
-	struct rte_port *rte_port = &ports[port_id];
-	struct rte_eth_dev_info dev_info;
-	uint16_t eth_overhead;
-	int ret;
-
-	if (port_id_is_invalid(port_id, ENABLED_WARN))
-		return;
-
-	ret = eth_dev_info_get_print_err(port_id, &dev_info);
-	if (ret != 0)
-		return;
-
-	if (mtu > dev_info.max_mtu || mtu < dev_info.min_mtu) {
-		printf("Set MTU failed. MTU:%u is not in valid range, min:%u - max:%u\n",
-			mtu, dev_info.min_mtu, dev_info.max_mtu);
-		return;
-	}
-	diag = rte_eth_dev_set_mtu(port_id, mtu);
-	if (diag)
-		printf("Set MTU failed. diag=%d\n", diag);
-	else if (dev_info.rx_offload_capa & DEV_RX_OFFLOAD_JUMBO_FRAME) {
-		/*
-		 * Ether overhead in driver is equal to the difference of
-		 * max_rx_pktlen and max_mtu in rte_eth_dev_info when the
-		 * device supports jumbo frame.
-		 */
-		eth_overhead = dev_info.max_rx_pktlen - dev_info.max_mtu;
-		if (mtu > RTE_ETHER_MTU) {
-			rte_port->dev_conf.rxmode.offloads |=
-						DEV_RX_OFFLOAD_JUMBO_FRAME;
-			rte_port->dev_conf.rxmode.max_rx_pkt_len =
-						mtu + eth_overhead;
-		} else
-			rte_port->dev_conf.rxmode.offloads &=
-						~DEV_RX_OFFLOAD_JUMBO_FRAME;
-	}
-}
-
-/* Generic flow management functions. */
-
-const char *
-port_flow_tunnel_type(struct rte_flow_tunnel *tunnel)
-{
-	const char *type;
-	switch (tunnel->type) {
-	default:
-		type = "unknown";
-		break;
-	case RTE_FLOW_ITEM_TYPE_VXLAN:
-		type = "vxlan";
-		break;
-	}
-
-	return type;
-}
-
-struct port_flow_tunnel *
-port_flow_locate_tunnel(uint16_t port_id, struct rte_flow_tunnel *tun)
-{
-	struct rte_port *port = &ports[port_id];
-	struct port_flow_tunnel *flow_tunnel;
-
-	LIST_FOREACH(flow_tunnel, &port->flow_tunnel_list, chain) {
-		if (!memcmp(&flow_tunnel->tunnel, tun, sizeof(*tun)))
-			goto out;
-	}
-	flow_tunnel = NULL;
-
-out:
-	return flow_tunnel;
-}
-
-
-union igb_ring_dword {
-	uint64_t dword;
-	struct {
-#if RTE_BYTE_ORDER == RTE_BIG_ENDIAN
-		uint32_t lo;
-		uint32_t hi;
-#else
-		uint32_t hi;
-		uint32_t lo;
-#endif
-	} words;
-};
-
-struct igb_ring_desc_32_bytes {
-	union igb_ring_dword lo_dword;
-	union igb_ring_dword hi_dword;
-	union igb_ring_dword resv1;
-	union igb_ring_dword resv2;
-};
-
-struct igb_ring_desc_16_bytes {
-	union igb_ring_dword lo_dword;
-	union igb_ring_dword hi_dword;
-};
 
 void
 rxtx_config_display(void)
@@ -829,21 +498,6 @@ pkt_fwd_config_display(struct fwd_config *cfg)
 	printf("\n");
 }
 
-void
-set_fwd_eth_peer(portid_t port_id, char *peer_addr)
-{
-	struct rte_ether_addr new_peer_addr;
-	if (!rte_eth_dev_is_valid_port(port_id)) {
-		printf("Error: Invalid port number %i\n", port_id);
-		return;
-	}
-	if (rte_ether_unformat_addr(peer_addr, &new_peer_addr) < 0) {
-		printf("Error: Invalid ethernet address: %s\n", peer_addr);
-		return;
-	}
-	peer_eth_addrs[port_id] = new_peer_addr;
-}
-
 int
 set_fwd_lcores_list(unsigned int *lcorelist, unsigned int nb_lc)
 {
@@ -1077,19 +731,6 @@ set_fwd_ports_mask(uint64_t portmask)
 	set_fwd_ports_list(portlist, nb_pt);
 }
 
-void
-set_fwd_ports_number(uint16_t nb_pt)
-{
-	if (nb_pt > nb_cfg_ports) {
-		printf("nb fwd ports %u > %u (number of configured "
-		       "ports) - ignored\n",
-		       (unsigned int) nb_pt, (unsigned int) nb_cfg_ports);
-		return;
-	}
-	nb_fwd_ports = (portid_t) nb_pt;
-	printf("Number of forwarding ports set to %u\n",
-	       (unsigned int) nb_fwd_ports);
-}
 
 int
 port_is_forwarding(portid_t port_id)

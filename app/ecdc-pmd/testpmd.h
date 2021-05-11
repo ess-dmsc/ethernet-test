@@ -101,12 +101,6 @@ struct rss_type_info {
 	uint64_t rss_type; /**< Type value. */
 };
 
-/**
- * RSS type information table.
- *
- * An entry with a NULL type name terminates the list.
- */
-extern const struct rss_type_info rss_type_table[];
 
 /**
  * Dynf name array.
@@ -295,7 +289,6 @@ extern uint32_t burst_tx_retry_num;
 
 extern struct fwd_engine rx_only_engine;
 
-extern struct fwd_engine * fwd_engines[]; /**< NULL terminated array. */
 extern cmdline_parse_inst_t cmd_set_raw;
 extern cmdline_parse_inst_t cmd_show_set_raw;
 extern cmdline_parse_inst_t cmd_show_set_raw_all;
@@ -313,25 +306,11 @@ struct fwd_config {
 	portid_t   nb_fwd_ports;    /**< Nb. of ports involved. */
 };
 
-/**
- * DCB mode enable
- */
-enum dcb_mode_enable
-{
-	DCB_VT_ENABLED,
-	DCB_ENABLED
-};
-
-extern uint8_t xstats_hide_zero; /**< Hide zero values for xstats display */
-
 /* globals used for configuration */
 extern uint8_t record_core_cycles; /**< Enables measurement of CPU cycles */
 extern uint8_t record_burst_stats; /**< Enables display of RX and TX bursts */
 extern uint16_t verbose_level; /**< Drives messages being displayed, if any. */
 extern int testpmd_logtype; /**< Log type for testpmd logs */
-extern uint8_t  interactive;
-extern uint8_t  auto_start;
-extern uint8_t  tx_first;
 extern char cmdline_filename[PATH_MAX]; /**< offline commands file */
 extern uint8_t  numa_support; /**< set by "--numa" parameter */
 extern uint16_t port_topology; /**< set by "--port-topology" parameter */
@@ -502,58 +481,6 @@ extern uint32_t burst_tx_retry_num;  /**< Burst tx retry number for mac-retry. *
 #define GRO_DEFAULT_FLUSH_CYCLES 1
 #define GRO_MAX_FLUSH_CYCLES 4
 
-struct gro_status {
-	struct rte_gro_param param;
-	uint8_t enable;
-};
-extern struct gro_status gro_ports[RTE_MAX_ETHPORTS];
-extern uint8_t gro_flush_cycles;
-
-#define GSO_MAX_PKT_BURST 2048
-struct gso_status {
-	uint8_t enable;
-};
-extern struct gso_status gso_ports[RTE_MAX_ETHPORTS];
-extern uint16_t gso_max_segment_size;
-
-/* VXLAN encap/decap parameters. */
-struct vxlan_encap_conf {
-	uint32_t select_ipv4:1;
-	uint32_t select_vlan:1;
-	uint32_t select_tos_ttl:1;
-	uint8_t vni[3];
-	rte_be16_t udp_src;
-	rte_be16_t udp_dst;
-	rte_be32_t ipv4_src;
-	rte_be32_t ipv4_dst;
-	uint8_t ipv6_src[16];
-	uint8_t ipv6_dst[16];
-	rte_be16_t vlan_tci;
-	uint8_t ip_tos;
-	uint8_t ip_ttl;
-	uint8_t eth_src[RTE_ETHER_ADDR_LEN];
-	uint8_t eth_dst[RTE_ETHER_ADDR_LEN];
-};
-
-extern struct vxlan_encap_conf vxlan_encap_conf;
-
-/* NVGRE encap/decap parameters. */
-struct nvgre_encap_conf {
-	uint32_t select_ipv4:1;
-	uint32_t select_vlan:1;
-	uint8_t tni[3];
-	rte_be32_t ipv4_src;
-	rte_be32_t ipv4_dst;
-	uint8_t ipv6_src[16];
-	uint8_t ipv6_dst[16];
-	rte_be16_t vlan_tci;
-	uint8_t eth_src[RTE_ETHER_ADDR_LEN];
-	uint8_t eth_dst[RTE_ETHER_ADDR_LEN];
-};
-
-extern struct nvgre_encap_conf nvgre_encap_conf;
-
-
 extern enum rte_eth_rx_mq_mode rx_mq_mode;
 
 
@@ -695,9 +622,6 @@ void launch_args_parse(int argc, char** argv);
 void prompt(void);
 void prompt_exit(void);
 void nic_stats_display(portid_t port_id);
-void nic_stats_clear(portid_t port_id);
-void device_infos_display(const char *identifier);
-void port_summary_header_display(void);
 void pkt_fwd_config_display(struct fwd_config *cfg);
 void rxtx_config_display(void);
 void fwd_config_setup(void);
@@ -706,23 +630,15 @@ void reconfig(portid_t new_port_id, unsigned socket_id);
 int init_fwd_streams(void);
 void update_fwd_ports(portid_t new_pid);
 
-void set_fwd_eth_peer(portid_t port_id, char *peer_addr);
-
-void port_mtu_set(portid_t port_id, uint16_t mtu);
-const char *port_flow_tunnel_type(struct rte_flow_tunnel *tunnel);
-struct port_flow_tunnel *
-port_flow_locate_tunnel(uint16_t port_id, struct rte_flow_tunnel *tun);
-
 int set_fwd_lcores_list(unsigned int *lcorelist, unsigned int nb_lc);
 int set_fwd_lcores_mask(uint64_t lcoremask);
 void set_fwd_lcores_number(uint16_t nb_lc);
 
 void set_fwd_ports_list(unsigned int *portlist, unsigned int nb_pt);
 void set_fwd_ports_mask(uint64_t portmask);
-void set_fwd_ports_number(uint16_t nb_pt);
 int port_is_forwarding(portid_t port_id);
 
-void start_packet_forwarding(int with_tx_first);
+void start_packet_forwarding(void);
 void fwd_stats_display(void);
 void fwd_stats_reset(void);
 void stop_packet_forwarding(void);
@@ -731,9 +647,6 @@ void dev_set_link_down(portid_t pid);
 void init_port_config(void);
 uint8_t port_is_bonding_slave(portid_t slave_pid);
 
-// int init_port_dcb_config(portid_t pid, enum dcb_mode_enable dcb_mode,
-// 		     enum rte_eth_nb_tcs num_tcs,
-// 		     uint8_t pfc_en);
 int start_port(portid_t pid);
 void stop_port(portid_t pid);
 void close_port(portid_t pid);
