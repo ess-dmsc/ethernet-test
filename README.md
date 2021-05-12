@@ -13,6 +13,10 @@ forwarding engines than **rxonly**. The periodic printout has been tailored
 to the specific application of printing receive stats from multiple queues
 on multiple ports.
 
+The original application with its many forwarding examples and command line
+features was above 45000 lines of code making it a bit unwieldy for a DPDK
+newcomer. This example is about 6000 lines and should be easier to navigate.
+
 
 ## Prerequisites
 The prerequisites consists of enabling iommu, configuring hugepages and install
