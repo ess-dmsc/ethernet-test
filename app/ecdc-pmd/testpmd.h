@@ -392,16 +392,6 @@ extern int8_t rx_drop_en;
 extern int16_t tx_free_thresh;
 extern int16_t tx_rs_thresh;
 
-extern uint16_t noisy_tx_sw_bufsz;
-extern uint16_t noisy_tx_sw_buf_flush_time;
-extern uint64_t noisy_lkup_mem_sz;
-extern uint64_t noisy_lkup_num_writes;
-extern uint64_t noisy_lkup_num_reads;
-extern uint64_t noisy_lkup_num_reads_writes;
-
-// extern uint8_t dcb_config;
-// extern uint8_t dcb_test;
-
 extern uint32_t mbuf_data_size_n;
 extern uint16_t mbuf_data_size[MAX_SEGS_BUFFER_SPLIT];
 /**< Mbuf data space size. */

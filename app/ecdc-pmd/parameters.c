@@ -85,12 +85,6 @@ usage(char* progname)
 	printf("  --max-pkt-len=N: set the maximum size of packet to N bytes.\n");
 	printf("  --max-lro-pkt-size=N: set the maximum LRO aggregated packet "
 	       "size to N bytes.\n");
-#ifdef RTE_LIB_CMDLINE
-	printf("  --eth-peers-configfile=name: config file with ethernet addresses "
-	       "of peer ports.\n");
-	printf("  --eth-peer=X,M:M:M:M:M:M: set the MAC address of the X peer "
-	       "port (0 <= X < %d).\n", RTE_MAX_ETHPORTS);
-#endif
 	printf("  --pkt-filter-mode=N: set Flow Director mode "
 	       "(N: none (default mode) or signature or perfect).\n");
 	printf("  --pkt-filter-report-hash=N: set Flow Director report mode "
@@ -198,37 +192,6 @@ usage(char* progname)
 	       "    0x10 - explicit Tx rule, 0x02 - hairpin ports paired\n"
 	       "    0x01 - hairpin ports loop, 0x00 - hairpin port self\n");
 }
-
-#ifdef RTE_LIB_CMDLINE
-static int
-init_peer_eth_addrs(char *config_filename)
-{
-	FILE *config_file;
-	portid_t i;
-	char buf[50];
-
-	config_file = fopen(config_filename, "r");
-	if (config_file == NULL) {
-		perror("Failed to open eth config file\n");
-		return -1;
-	}
-
-	for (i = 0; i < RTE_MAX_ETHPORTS; i++) {
-
-		if (fgets(buf, sizeof(buf), config_file) == NULL)
-			break;
-
-		if (rte_ether_unformat_addr(buf, &peer_eth_addrs[i]) < 0) {
-			printf("Bad MAC address format on line %d\n", i+1);
-			fclose(config_file);
-			return -1;
-		}
-	}
-	fclose(config_file);
-	nb_peer_eth_addrs = (portid_t) i;
-	return 0;
-}
-#endif
 
 /*
  * Parse the coremask given as argument (hexadecimal string) and set
@@ -512,12 +475,6 @@ launch_args_parse(int argc, char** argv)
 
 	static struct option lgopts[] = {
 		{ "help",			0, 0, 0 },
-#ifdef RTE_LIB_CMDLINE
-		{ "cmdline-file",		1, 0, 0 },
-		{ "auto-start",			0, 0, 0 },
-		{ "eth-peers-configfile",	1, 0, 0 },
-		{ "eth-peer",			1, 0, 0 },
-#endif
 		{ "stats-period",		1, 0, 0 },
 		{ "nb-cores",			1, 0, 0 },
 		{ "nb-ports",			1, 0, 0 },
@@ -632,52 +589,6 @@ launch_args_parse(int argc, char** argv)
 				usage(argv[0]);
 				exit(EXIT_SUCCESS);
 			}
-#ifdef RTE_LIB_CMDLINE
-			if (!strcmp(lgopts[opt_idx].name, "cmdline-file")) {
-				printf("CLI commands to be read from %s\n",
-				       optarg);
-				strlcpy(cmdline_filename, optarg,
-					sizeof(cmdline_filename));
-			}
-			if (!strcmp(lgopts[opt_idx].name, "stats-period")) {
-				char *end = NULL;
-				unsigned int n;
-
-				n = strtoul(optarg, &end, 10);
-				if ((optarg[0] == '\0') || (end == NULL) ||
-						(*end != '\0'))
-					break;
-
-				stats_period = n;
-				break;
-			}
-			if (!strcmp(lgopts[opt_idx].name,
-				    "eth-peers-configfile")) {
-				if (init_peer_eth_addrs(optarg) != 0)
-					rte_exit(EXIT_FAILURE,
-						 "Cannot open logfile\n");
-			}
-			if (!strcmp(lgopts[opt_idx].name, "eth-peer")) {
-				char *port_end;
-
-				errno = 0;
-				n = strtoul(optarg, &port_end, 10);
-				if (errno != 0 || port_end == optarg || *port_end++ != ',')
-					rte_exit(EXIT_FAILURE,
-						 "Invalid eth-peer: %s", optarg);
-				if (n >= RTE_MAX_ETHPORTS)
-					rte_exit(EXIT_FAILURE,
-						 "eth-peer: port %d >= RTE_MAX_ETHPORTS(%d)\n",
-						 n, RTE_MAX_ETHPORTS);
-
-				if (rte_ether_unformat_addr(port_end,
-						&peer_eth_addrs[n]) < 0)
-					rte_exit(EXIT_FAILURE,
-						 "Invalid ethernet address: %s\n",
-						 port_end);
-				nb_peer_eth_addrs++;
-			}
-#endif
 			if (!strcmp(lgopts[opt_idx].name, "tx-ip")) {
 				struct in_addr in;
 				char *end;
@@ -1203,60 +1114,6 @@ launch_args_parse(int argc, char** argv)
 				do_mlockall = 1;
 			if (!strcmp(lgopts[opt_idx].name, "no-mlockall"))
 				do_mlockall = 0;
-			if (!strcmp(lgopts[opt_idx].name,
-				    "noisy-tx-sw-buffer-size")) {
-				n = atoi(optarg);
-				if (n >= 0)
-					noisy_tx_sw_bufsz = n;
-				else
-					rte_exit(EXIT_FAILURE,
-						"noisy-tx-sw-buffer-size must be >= 0\n");
-			}
-			if (!strcmp(lgopts[opt_idx].name,
-				    "noisy-tx-sw-buffer-flushtime")) {
-				n = atoi(optarg);
-				if (n >= 0)
-					noisy_tx_sw_buf_flush_time = n;
-				else
-					rte_exit(EXIT_FAILURE,
-						 "noisy-tx-sw-buffer-flushtime must be >= 0\n");
-			}
-			if (!strcmp(lgopts[opt_idx].name,
-				    "noisy-lkup-memory")) {
-				n = atoi(optarg);
-				if (n >= 0)
-					noisy_lkup_mem_sz = n;
-				else
-					rte_exit(EXIT_FAILURE,
-						 "noisy-lkup-memory must be >= 0\n");
-			}
-			if (!strcmp(lgopts[opt_idx].name,
-				    "noisy-lkup-num-writes")) {
-				n = atoi(optarg);
-				if (n >= 0)
-					noisy_lkup_num_writes = n;
-				else
-					rte_exit(EXIT_FAILURE,
-						 "noisy-lkup-num-writes must be >= 0\n");
-			}
-			if (!strcmp(lgopts[opt_idx].name,
-				    "noisy-lkup-num-reads")) {
-				n = atoi(optarg);
-				if (n >= 0)
-					noisy_lkup_num_reads = n;
-				else
-					rte_exit(EXIT_FAILURE,
-						 "noisy-lkup-num-reads must be >= 0\n");
-			}
-			if (!strcmp(lgopts[opt_idx].name,
-				    "noisy-lkup-num-reads-writes")) {
-				n = atoi(optarg);
-				if (n >= 0)
-					noisy_lkup_num_reads_writes = n;
-				else
-					rte_exit(EXIT_FAILURE,
-						 "noisy-lkup-num-reads-writes must be >= 0\n");
-			}
 			if (!strcmp(lgopts[opt_idx].name, "no-iova-contig"))
 				mempool_flags = MEMPOOL_F_NO_IOVA_CONTIG;
 

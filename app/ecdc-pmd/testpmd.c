@@ -174,7 +174,7 @@ uint16_t mbuf_data_size[MAX_SEGS_BUFFER_SPLIT] = {
 }; /**< Mbuf data space size. */
 uint32_t param_total_num_mbufs = 0;  /**< number of mbufs in all pools - if
                                       * specified on command-line. */
-uint16_t stats_period; /**< Period to show statistics (disabled by default) */
+uint16_t stats_period = 1; /**< Period to show statistics (disabled by default) */
 
 /*
  * In container, it cannot terminate the process which running with 'stats-period'
@@ -215,12 +215,6 @@ uint32_t tx_pkt_times_intra;
 uint16_t nb_pkt_per_burst = DEF_PKT_BURST; /**< Number of packets per burst. */
 uint16_t nb_pkt_flowgen_clones; /**< Number of Tx packet clones to send in flowgen mode. */
 uint16_t mb_mempool_cache = DEF_MBUF_CACHE; /**< Size of mbuf mempool cache. */
-
-/* current configuration is in DCB or not,0 means it is not in DCB mode */
-// uint8_t dcb_config = 0;
-
-/* Whether the dcb is in testing status */
-// uint8_t dcb_test = 0;
 
 /*
  * Configurable number of RX/TX queues.
@@ -270,40 +264,6 @@ int16_t tx_free_thresh = RTE_PMD_PARAM_UNSET;
  * Configurable value of TX RS bit threshold.
  */
 int16_t tx_rs_thresh = RTE_PMD_PARAM_UNSET;
-
-/*
- * Configurable value of buffered packets before sending.
- */
-uint16_t noisy_tx_sw_bufsz;
-
-/*
- * Configurable value of packet buffer timeout.
- */
-uint16_t noisy_tx_sw_buf_flush_time;
-
-/*
- * Configurable value for size of VNF internal memory area
- * used for simulating noisy neighbour behaviour
- */
-uint64_t noisy_lkup_mem_sz;
-
-/*
- * Configurable value of number of random writes done in
- * VNF simulation memory area.
- */
-uint64_t noisy_lkup_num_writes;
-
-/*
- * Configurable value of number of random reads done in
- * VNF simulation memory area.
- */
-uint64_t noisy_lkup_num_reads;
-
-/*
- * Configurable value of number of random reads/writes done in
- * VNF simulation memory area.
- */
-uint64_t noisy_lkup_num_reads_writes;
 
 /*
  * Receive Side Scaling (RSS) configuration.
@@ -1393,7 +1353,6 @@ init_config(void)
 	unsigned int nb_mbuf_per_pool;
 	lcoreid_t  lc_id;
 	uint8_t port_per_socket[RTE_MAX_NUMA_NODES];
-	struct rte_gro_param gro_param;
 	uint32_t gso_types;
 	uint16_t data_size;
 	bool warning = 0;
