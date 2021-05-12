@@ -96,10 +96,7 @@ usage(char* progname)
 	       "the packet will be enqueued into the rx drop-queue. "
 	       "If the drop-queue doesn't exist, the packet is dropped. "
 	       "By default drop-queue=127.\n");
-#ifdef RTE_LIB_LATENCYSTATS
-	printf("  --latencystats=N: enable latency and jitter statistcs "
-	       "monitoring on forwarding lcore id N.\n");
-#endif
+
 	printf("  --disable-crc-strip: disable CRC stripping by hardware.\n");
 	printf("  --enable-scatter: enable scattered Rx.\n");
 	printf("  --enable-lro: enable large receive offload.\n");
@@ -495,12 +492,6 @@ launch_args_parse(int argc, char** argv)
 		{ "pkt-filter-report-hash",     1, 0, 0 },
 		{ "pkt-filter-size",            1, 0, 0 },
 		{ "pkt-filter-drop-queue",      1, 0, 0 },
-#ifdef RTE_LIB_LATENCYSTATS
-		{ "latencystats",               1, 0, 0 },
-#endif
-#ifdef RTE_LIB_BITRATESTATS
-		{ "bitrate-stats",              1, 0, 0 },
-#endif
 		{ "disable-crc-strip",          0, 0, 0 },
 		{ "enable-lro",                 0, 0, 0 },
 		{ "enable-rx-cksum",            0, 0, 0 },
@@ -780,31 +771,6 @@ launch_args_parse(int argc, char** argv)
 						 "drop queue %d invalid - must"
 						 "be >= 0 \n", n);
 			}
-#ifdef RTE_LIB_LATENCYSTATS
-			if (!strcmp(lgopts[opt_idx].name,
-				    "latencystats")) {
-				n = atoi(optarg);
-				if (n >= 0) {
-					latencystats_lcore_id = (lcoreid_t) n;
-					latencystats_enabled = 1;
-				} else
-					rte_exit(EXIT_FAILURE,
-						 "invalid lcore id %d for latencystats"
-						 " must be >= 0\n", n);
-			}
-#endif
-#ifdef RTE_LIB_BITRATESTATS
-			if (!strcmp(lgopts[opt_idx].name, "bitrate-stats")) {
-				n = atoi(optarg);
-				if (n >= 0) {
-					bitrate_lcore_id = (lcoreid_t) n;
-					bitrate_enabled = 1;
-				} else
-					rte_exit(EXIT_FAILURE,
-						 "invalid lcore id %d for bitrate stats"
-						 " must be >= 0\n", n);
-			}
-#endif
 			if (!strcmp(lgopts[opt_idx].name, "disable-crc-strip"))
 				rx_offloads |= DEV_RX_OFFLOAD_KEEP_CRC;
 			if (!strcmp(lgopts[opt_idx].name, "enable-lro"))
@@ -1072,8 +1038,6 @@ launch_args_parse(int argc, char** argv)
 			}
 			if (!strcmp(lgopts[opt_idx].name, "disable-link-check"))
 				no_link_check = 1;
-			if (!strcmp(lgopts[opt_idx].name, "disable-device-start"))
-				no_device_start = 1;
 			if (!strcmp(lgopts[opt_idx].name, "no-lsc-interrupt"))
 				lsc_interrupt = 0;
 			if (!strcmp(lgopts[opt_idx].name, "no-rmv-interrupt"))

@@ -14,17 +14,8 @@ sources = files(
 )
 
 deps += ['ethdev', 'gro', 'gso', 'cmdline', 'metrics', 'meter', 'bus_pci']
-if dpdk_conf.has('RTE_LIB_BITRATESTATS')
-    deps += 'bitratestats'
-endif
 if dpdk_conf.has('RTE_LIB_PDUMP')
     deps += 'pdump'
-endif
-if dpdk_conf.has('RTE_LIB_BITRATESTATS')
-    deps += 'bitratestats'
-endif
-if dpdk_conf.has('RTE_LIB_LATENCYSTATS')
-    deps += 'latencystats'
 endif
 if dpdk_conf.has('RTE_CRYPTO_SCHEDULER')
     deps += 'crypto_scheduler'

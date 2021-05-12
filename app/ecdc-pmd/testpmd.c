@@ -51,12 +51,6 @@
 #endif
 #include <rte_flow.h>
 #include <rte_metrics.h>
-#ifdef RTE_LIB_BITRATESTATS
-#include <rte_bitrate.h>
-#endif
-#ifdef RTE_LIB_LATENCYSTATS
-#include <rte_latencystats.h>
-#endif
 
 #include "testpmd.h"
 
@@ -286,11 +280,6 @@ uint8_t no_flush_rx = 0; /* flush by default */
 uint8_t no_link_check = 0; /* check by default */
 
 /*
- * Don't automatically start all ports in interactive mode.
- */
-uint8_t no_device_start = 0;
-
-/*
  * Enable link status change notification
  */
 uint8_t lsc_interrupt = 1; /* enabled by default */
@@ -354,20 +343,6 @@ uint32_t bypass_timeout = RTE_PMD_IXGBE_BYPASS_TMT_OFF;
 #endif
 
 
-#ifdef RTE_LIB_LATENCYSTATS
-
-/*
- * Set when latency stats is enabled in the commandline
- */
-uint8_t latencystats_enabled;
-
-/*
- * Lcore ID to serive latency statistics.
- */
-lcoreid_t latencystats_lcore_id = -1;
-
-#endif
-
 /*
  * Ethernet device configuration.
  */
@@ -420,13 +395,6 @@ uint8_t record_burst_stats;
 
 unsigned int num_sockets = 0;
 unsigned int socket_ids[RTE_MAX_NUMA_NODES];
-
-#ifdef RTE_LIB_BITRATESTATS
-/* Bitrate statistics */
-struct rte_stats_bitrates *bitrate_data;
-lcoreid_t bitrate_lcore_id;
-uint8_t bitrate_enabled;
-#endif
 
 /*
  * hexadecimal bitmask of RX mq mode can be enabled.
@@ -1353,6 +1321,7 @@ init_config(void)
 	unsigned int nb_mbuf_per_pool;
 	lcoreid_t  lc_id;
 	uint8_t port_per_socket[RTE_MAX_NUMA_NODES];
+	struct rte_gro_param gro_param;
 	uint32_t gso_types;
 	uint16_t data_size;
 	bool warning = 0;
@@ -1961,40 +1930,12 @@ run_pkt_fwd_on_lcore(struct fwd_lcore *fc, packet_fwd_t pkt_fwd)
 	struct fwd_stream **fsm;
 	streamid_t nb_fs;
 	streamid_t sm_id;
-#ifdef RTE_LIB_BITRATESTATS
-	uint64_t tics_per_1sec;
-	uint64_t tics_datum;
-	uint64_t tics_current;
-	uint16_t i, cnt_ports;
 
-	cnt_ports = nb_ports;
-	tics_datum = rte_rdtsc();
-	tics_per_1sec = rte_get_timer_hz();
-#endif
 	fsm = &fwd_streams[fc->stream_idx];
 	nb_fs = fc->stream_nb;
 	do {
 		for (sm_id = 0; sm_id < nb_fs; sm_id++)
 			(*pkt_fwd)(fsm[sm_id]);
-#ifdef RTE_LIB_BITRATESTATS
-		if (bitrate_enabled != 0 &&
-				bitrate_lcore_id == rte_lcore_id()) {
-			tics_current = rte_rdtsc();
-			if (tics_current - tics_datum >= tics_per_1sec) {
-				/* Periodic bitrate calculation */
-				for (i = 0; i < cnt_ports; i++)
-					rte_stats_bitrate_calc(bitrate_data,
-						ports_ids[i]);
-				tics_datum = tics_current;
-			}
-		}
-#endif
-#ifdef RTE_LIB_LATENCYSTATS
-		if (latencystats_enabled != 0 &&
-				latencystats_lcore_id == rte_lcore_id())
-			rte_latencystats_update();
-#endif
-
 	} while (! fc->stopped);
 }
 
@@ -2098,10 +2039,10 @@ stop_packet_forwarding(void)
 		printf("Packet forwarding not started\n");
 		return;
 	}
-	printf("Telling cores to stop...");
+	printf("Telling cores to stop...\n");
 	for (lc_id = 0; lc_id < cur_fwd_config.nb_fwd_lcores; lc_id++)
 		fwd_lcores[lc_id]->stopped = 1;
-	printf("\nWaiting for lcores to finish...\n");
+	printf("Waiting for lcores to finish...\n");
 	rte_eal_mp_wait_lcore();
 	port_fwd_end = cur_fwd_config.fwd_eng->port_fwd_end;
 	if (port_fwd_end != NULL) {
@@ -2110,24 +2051,16 @@ stop_packet_forwarding(void)
 			(*port_fwd_end)(pt_id);
 		}
 	}
-
-	fwd_stats_display();
-
-	printf("\nDone.\n");
 	test_done = 1;
 }
 
-void
-dev_set_link_up(portid_t pid)
-{
+void dev_set_link_up(portid_t pid) {
 	printf("mjcdebug: %s()\n", __FUNCTION__);
 	if (rte_eth_dev_set_link_up(pid) < 0)
 		printf("\nSet link up fail.\n");
 }
 
-void
-dev_set_link_down(portid_t pid)
-{
+void dev_set_link_down(portid_t pid) {
 	printf("mjcdebug: %s()\n", __FUNCTION__);
 	if (rte_eth_dev_set_link_down(pid) < 0)
 		printf("\nSet link down fail.\n");
@@ -2211,11 +2144,9 @@ setup_hairpin_queues(portid_t pi, portid_t p_pi, uint16_t cnt_pi)
 		peer_tx_port = pi;
 		manual = 0;
 	} else if (hairpin_mode & 0x1) {
-		peer_tx_port = rte_eth_find_next_owned_by(pi + 1,
-						       RTE_ETH_DEV_NO_OWNER);
+		peer_tx_port = rte_eth_find_next_owned_by(pi + 1, RTE_ETH_DEV_NO_OWNER);
 		if (peer_tx_port >= RTE_MAX_ETHPORTS)
-			peer_tx_port = rte_eth_find_next_owned_by(0,
-						RTE_ETH_DEV_NO_OWNER);
+			peer_tx_port = rte_eth_find_next_owned_by(0, RTE_ETH_DEV_NO_OWNER);
 		if (p_pi != RTE_MAX_ETHPORTS) {
 			peer_rx_port = p_pi;
 		} else {
@@ -2277,10 +2208,8 @@ setup_hairpin_queues(portid_t pi, portid_t p_pi, uint16_t cnt_pi)
 		if (rte_atomic16_cmpset(&(port->port_status),
 					RTE_PORT_HANDLING,
 					RTE_PORT_STOPPED) == 0)
-			printf("Port %d can not be set back "
-					"to stopped\n", pi);
-		printf("Fail to configure port %d hairpin "
-				"queues\n", pi);
+			printf("Port %d can not be set back to stopped\n", pi);
+		printf("Fail to configure port %d hairpin queues\n", pi);
 		/* try to reconfigure queues next time */
 		port->need_reconfig_queues = 1;
 		return -1;
@@ -2417,10 +2346,8 @@ start_port(portid_t pid)
 				if (rte_atomic16_cmpset(&(port->port_status),
 							RTE_PORT_HANDLING,
 							RTE_PORT_STOPPED) == 0)
-					printf("Port %d can not be set back "
-							"to stopped\n", pi);
-				printf("Fail to configure port %d tx queues\n",
-				       pi);
+					printf("Port %d can not be set back to stopped\n", pi);
+				printf("Fail to configure port %d tx queues\n", pi);
 				/* try to reconfigure queues next time */
 				port->need_reconfig_queues = 1;
 				return -1;
@@ -2433,9 +2360,7 @@ start_port(portid_t pid)
 						mbuf_pool_find
 							(rxring_numa[pi], 0);
 					if (mp == NULL) {
-						printf("Failed to setup RX queue:"
-							"No mempool allocation"
-							" on the socket %d\n",
+						printf("Failed to setup RX queue: No mempool allocation on the socket %d\n",
 							rxring_numa[pi]);
 						return -1;
 					}
@@ -2450,9 +2375,7 @@ start_port(portid_t pid)
 						mbuf_pool_find
 							(port->socket_id, 0);
 					if (mp == NULL) {
-						printf("Failed to setup RX queue:"
-							"No mempool allocation"
-							" on the socket %d\n",
+						printf("Failed to setup RX queue: No mempool allocation on the socket %d\n",
 							port->socket_id);
 						return -1;
 					}
@@ -2469,10 +2392,8 @@ start_port(portid_t pid)
 				if (rte_atomic16_cmpset(&(port->port_status),
 							RTE_PORT_HANDLING,
 							RTE_PORT_STOPPED) == 0)
-					printf("Port %d can not be set back "
-							"to stopped\n", pi);
-				printf("Fail to configure port %d rx queues\n",
-				       pi);
+					printf("Port %d can not be set back to stopped\n", pi);
+				printf("Fail to configure port %d rx queues\n", pi);
 				/* try to reconfigure queues next time */
 				port->need_reconfig_queues = 1;
 				return -1;
@@ -2483,12 +2404,9 @@ start_port(portid_t pid)
 		}
 
 		if (clear_ptypes) {
-			diag = rte_eth_dev_set_ptypes(pi, RTE_PTYPE_UNKNOWN,
-					NULL, 0);
+			diag = rte_eth_dev_set_ptypes(pi, RTE_PTYPE_UNKNOWN, NULL, 0);
 			if (diag < 0)
-				printf(
-				"Port %d: Failed to disable Ptype parsing\n",
-				pi);
+				printf("Port %d: Failed to disable Ptype parsing\n", pi);
 		}
 
 		p_pi = pi;
@@ -2497,8 +2415,7 @@ start_port(portid_t pid)
 		/* start port */
 		diag = rte_eth_dev_start(pi);
 		if (diag < 0) {
-			printf("Fail to start port %d: %s\n", pi,
-			       rte_strerror(-diag));
+			printf("Fail to start port %d: %s\n", pi, rte_strerror(-diag));
 
 			/* Fail to setup rx queue, return */
 			if (rte_atomic16_cmpset(&(port->port_status),
@@ -2572,8 +2489,6 @@ start_port(portid_t pid)
 			}
 		}
 	}
-
-	printf("Done\n");
 	return 0;
 }
 
@@ -2585,11 +2500,6 @@ stop_port(portid_t pid)
 	int need_check_link_status = 0;
 	portid_t peer_pl[RTE_MAX_ETHPORTS];
 	int peer_pi;
-
-	// if (dcb_test) {
-	// 	dcb_test = 0;
-	// 	dcb_config = 0;
-	// }
 
 	if (port_id_is_invalid(pid, ENABLED_WARN))
 		return;
@@ -2631,9 +2541,6 @@ stop_port(portid_t pid)
 			}
 		}
 
-		// if (port->flow_list)
-		// 	port_flow_flush(pi);
-
 		if (rte_eth_dev_stop(pi) != 0)
 			RTE_LOG(ERR, EAL, "rte_eth_dev_stop failed for port %u\n",
 				pi);
@@ -2645,8 +2552,6 @@ stop_port(portid_t pid)
 	}
 	if (need_check_link_status && !no_link_check)
 		check_all_ports_link_status(RTE_PORT_ALL);
-
-	printf("Done\n");
 }
 
 static void
@@ -2710,7 +2615,6 @@ close_port(portid_t pid)
 	}
 
 	remove_invalid_ports();
-	printf("Done\n");
 }
 
 void
@@ -2758,7 +2662,6 @@ reset_port(portid_t pid)
 		}
 	}
 
-	printf("Done\n");
 }
 
 void
@@ -2823,7 +2726,6 @@ setup_attached_port(portid_t pi)
 	ports[pi].port_status = RTE_PORT_STOPPED;
 
 	printf("Port %d is attached. Now total ports is %d\n", pi, nb_ports);
-	printf("Done\n");
 }
 
 static void
@@ -2856,7 +2758,6 @@ detach_device(struct rte_device *dev)
 
 	printf("Device is detached\n");
 	printf("Now total ports is %d\n", nb_ports);
-	printf("Done\n");
 	return;
 }
 
@@ -2916,7 +2817,6 @@ detach_devargs(char *identifier)
 
 	printf("Device %s is detached\n", identifier);
 	printf("Now total ports is %d\n", nb_ports);
-	printf("Done\n");
 	rte_devargs_reset(&da);
 }
 
@@ -2938,12 +2838,12 @@ void pmd_test_exit(void) {
 	if (ports != NULL) {
 		no_link_check = 1;
 		RTE_ETH_FOREACH_DEV(pt_id) {
-			printf("\nStopping port %d...\n", pt_id);
+			printf("Stopping port %d...\n", pt_id);
 			fflush(stdout);
 			stop_port(pt_id);
 		}
 		RTE_ETH_FOREACH_DEV(pt_id) {
-			printf("\nShutting down port %d...\n", pt_id);
+			printf("Shutting down port %d...\n", pt_id);
 			fflush(stdout);
 			close_port(pt_id);
 		}
@@ -2974,14 +2874,7 @@ void pmd_test_exit(void) {
 			rte_mempool_free(mempools[i]);
 	}
 
-	printf("\nBye...\n");
 }
-
-typedef void (*cmd_func_t)(void);
-struct pmd_test_command {
-	const char *cmd_name;
-	cmd_func_t cmd_func;
-};
 
 /* Check the link status of all ports in up to 9s, and print them finally */
 static void
@@ -3438,12 +3331,7 @@ static void
 signal_handler(int signum)
 {
 	if (signum == SIGINT || signum == SIGTERM) {
-		printf("\nSignal %d received, preparing to exit...\n",
-				signum);
-#ifdef RTE_LIB_LATENCYSTATS
-		if (latencystats_enabled != 0)
-			rte_latencystats_uninit();
-#endif
+		// printf("\nSignal %d received, preparing to exit...\n", signum);
 		force_quit();
 		/* Set flag to indicate the force termination. */
 		f_quit = 1;
@@ -3453,9 +3341,7 @@ signal_handler(int signum)
 	}
 }
 
-int
-main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
 	int diag;
 	portid_t port_id;
 	uint16_t count;
@@ -3471,12 +3357,10 @@ main(int argc, char** argv)
 
 	diag = rte_eal_init(argc, argv);
 	if (diag < 0)
-		rte_exit(EXIT_FAILURE, "Cannot init EAL: %s\n",
-			 rte_strerror(rte_errno));
+		rte_exit(EXIT_FAILURE, "Cannot init EAL: %s\n", rte_strerror(rte_errno));
 
 	if (rte_eal_process_type() == RTE_PROC_SECONDARY)
-		rte_exit(EXIT_FAILURE,
-			 "Secondary process type not supported.\n");
+		rte_exit(EXIT_FAILURE, "Secondary process type not supported.\n");
 
 	ret = register_eth_event_callback();
 	if (ret != 0)
@@ -3498,14 +3382,6 @@ main(int argc, char** argv)
 	if (nb_lcores == 0)
 		rte_exit(EXIT_FAILURE, "No cores defined for forwarding\n"
 			 "Check the core mask argument\n");
-
-	/* Bitrate/latency stats disabled by default */
-#ifdef RTE_LIB_BITRATESTATS
-	bitrate_enabled = 0;
-#endif
-#ifdef RTE_LIB_LATENCYSTATS
-	latencystats_enabled = 0;
-#endif
 
 	/* on FreeBSD, mlockall() is disabled by default */
 #ifdef RTE_EXEC_ENV_FREEBSD
@@ -3529,8 +3405,7 @@ main(int argc, char** argv)
 
 	if (nb_rxq > 1 && nb_rxq > nb_txq)
 		printf("Warning: nb_rxq=%d enables RSS configuration, "
-		       "but nb_txq=%d will prevent to fully test it.\n",
-		       nb_rxq, nb_txq);
+		       "but nb_txq=%d will prevent to fully test it.\n", nb_rxq, nb_txq);
 
 	init_config();
 
@@ -3558,7 +3433,7 @@ main(int argc, char** argv)
 		}
 	}
 
-	if (!no_device_start && start_port(RTE_PORT_ALL) != 0)
+	if (start_port(RTE_PORT_ALL) != 0)
 		rte_exit(EXIT_FAILURE, "Start ports failed\n");
 
 	/* set all ports to promiscuous mode by default */
@@ -3572,34 +3447,9 @@ main(int argc, char** argv)
 	/* Init metrics library */
 	rte_metrics_init(rte_socket_id());
 
-#ifdef RTE_LIB_LATENCYSTATS
-	if (latencystats_enabled != 0) {
-		int ret = rte_latencystats_init(1, NULL);
-		if (ret)
-			printf("Warning: latencystats init()"
-				" returned error %d\n",	ret);
-		printf("Latencystats running on lcore %d\n",
-			latencystats_lcore_id);
-	}
-#endif
-
-	/* Setup bitrate stats */
-#ifdef RTE_LIB_BITRATESTATS
-	if (bitrate_enabled != 0) {
-		bitrate_data = rte_stats_bitrate_create();
-		if (bitrate_data == NULL)
-			rte_exit(EXIT_FAILURE,
-				"Could not allocate bitrate data.\n");
-		rte_stats_bitrate_reg(bitrate_data);
-	}
-#endif
 	{
-		char c;
-		int rc;
-
 		f_quit = 0;
 
-		printf("No commandline core given, start packet forwarding\n");
 		start_packet_forwarding();
 		if (stats_period != 0) {
 			uint64_t prev_time = 0, cur_time, diff_time = 0;
@@ -3623,17 +3473,12 @@ main(int argc, char** argv)
 			}
 		}
 
-		printf("Press enter to exit\n");
-		rc = read(0, &c, 1);
 		pmd_test_exit();
-		if (rc < 0)
-			return 1;
 	}
 
 	ret = rte_eal_cleanup();
 	if (ret != 0)
-		rte_exit(EXIT_FAILURE,
-			 "EAL cleanup failed: %s\n", strerror(-ret));
+		rte_exit(EXIT_FAILURE, "EAL cleanup failed: %s\n", strerror(-ret));
 
 	return EXIT_SUCCESS;
 }
