@@ -46,10 +46,23 @@ then
 
 ### Mellanox drivers
 The Mellanox poll mode driver requires libmlx5 to be built and installed before
-building dpdk
+building DPDK.
 
+Figuring out which software to download can be a little tricky. But have a look
+at the [Mellanox website](https://www.mellanox.com/products/ethernet-drivers/linux/mlnx_en).
+
+There are further [installation instructions here](https://community.mellanox.com/s/article/howto-install-mlnx-ofed-driver)
+
+Depending on the NIC the installation looks something like this
+
+#### Ubuntu 20.04 - ConnectX-5
     > tar xvf mlnx-en-5.3-1.0.0.1-ubuntu20.04-x86_64.tar
     > cd mlnx-en-5.3-1.0.0.1-ubuntu20.04-x86_64/
+    > sudo ./install --upstream-libs --dpdk
+
+#### CentOS - ConnectX-4
+    > tar xvf mlnx-en-5.3-1.0.0.1-rhel7.9-x86_64.tar
+    > cd cd mlnx-en-5.3-1.0.0.1-rhel7.9-x86_64
     > sudo ./install --upstream-libs --dpdk
 
 ### DPDK clone, build and install
